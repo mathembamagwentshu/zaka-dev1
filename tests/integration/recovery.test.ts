@@ -152,6 +152,33 @@ describe("uncertain capture outcomes are reconciled, never re-charged blindly", 
   });
 });
 
+describe("provider unavailable while preparing a card", () => {
+  it("reports a retryable error, records the operation as UNKNOWN, and the retry reuses the same key", async () => {
+    const c = await checkout(10000);
+    await chooseMode(c.viewer, "STANDALONE", await versionOf(c.viewer));
+    const { startAttempt, prepareCard } = await import("@/server/payments/orchestrator");
+    const { attemptId } = await startAttempt(c.viewer, { cardAmountsMinor: [3500, 6500], currency: "USD", version: await versionOf(c.viewer), requestKey: "rk-unavailable-1" });
+    const real = sim();
+    setProviderForTests(
+      wrap({
+        createIntent: async (input) => {
+          await real.createIntent(input); // the provider created it…
+          throw new ProviderError("unknown", null, "ETIMEDOUT"); // …but the response was lost
+        },
+      }),
+    );
+    await expectError(prepareCard(c.viewer, attemptId, 1), "PROVIDER_UNAVAILABLE");
+    const op = await db.providerOperation.findFirstOrThrow({ where: { kind: "CREATE_INTENT" } });
+    expect(op.status).toBe("UNKNOWN");
+
+    setProviderForTests(undefined);
+    const prepared = await prepareCard(c.viewer, attemptId, 1);
+    expect(await db.simulatedIntent.count()).toBe(1); // same key → the same object, not a second one
+    expect(prepared.clientSecret.split("_secret_")[0]).toBe((await db.simulatedIntent.findFirstOrThrow()).id);
+    expect((await db.providerOperation.findUniqueOrThrow({ where: { id: op.id } })).status).toBe("SUCCEEDED");
+  });
+});
+
 describe("operator continuation retry", () => {
   it("is refused (nothing attempted) when a remaining card is no longer held", async () => {
     const s = await partialCaptureSession();

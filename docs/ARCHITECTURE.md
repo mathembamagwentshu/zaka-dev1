@@ -6,7 +6,8 @@ One repository, one Next.js web app, one worker process, one PostgreSQL database
 Storefront backend ──HMAC──▶ POST /api/v1/merchant/checkouts ──▶ CheckoutSession + initiator link
 Payer browser (/pay#token) ──Bearer──▶ /api/v1/session|attempts/* ──▶ orchestrator ──▶ Stripe (Connect, direct charges)
 Stripe ──signed Connect webhook──▶ /api/webhooks/stripe ──▶ re-retrieve intent ──▶ orchestrator
-Worker (pg-boss): capture · expiry · hold release · email · sweep (every minute)
+Worker (pg-boss): capture · expiry · hold release · email · store status callback · sweep (every minute)
+Zaka ──HMAC──▶ store status callback (optional, best-effort; the status GET stays authoritative)
 ```
 
 ## Module map
@@ -20,14 +21,17 @@ Worker (pg-boss): capture · expiry · hold release · email · sweep (every min
 | `src/server/checkout/` | Checkout boundary (signed merchant API, one-live-session rule, cart change), method choice and share locking, role-scoped session view. |
 | `src/server/access/tokens.ts` | Capability links: generation, HMAC lookup, AES-GCM copy, pay/manage/view checks, revocation. |
 | `src/server/payments/orchestrator.ts` | **Shared payment engine for both modes**: start/reset attempt, sequential card preparation, apply provider state, fail attempt + release, capture gate. |
-| `src/server/payments/capture.ts` | Capture job: pre-capture hold validation, sequential idempotent captures, timeout reconciliation, partial-capture exception, completion. |
+| `src/server/payments/capture.ts` | Capture job: reconcile provider-confirmed captures first, pre-capture hold validation, sequential idempotent captures, reconcile after any capture error, partial-capture exception, completion. |
 | `src/server/payments/lifecycle.ts` | Cancel / expire / supersede with hold release and link revocation. |
 | `src/server/payments/release.ts` | Idempotent hold cancellation, confirmed against the provider. |
 | `src/server/payments/webhooks.ts` | Signature, test-mode, account context, dedupe, re-retrieve-and-apply. |
-| `src/server/payments/recovery.ts` | Operator procedures (reconcile, retry capture, reverse) — CLI only. |
+| `src/server/payments/recovery.ts` | Operator procedures (reconcile, continuation retry, reverse, refund tracking, cancel, expiry fixture) — CLI only; operator identity, per-session lock, reconcile-first. |
 | `src/server/payments/sweep.ts` | Backstop for lost jobs/webhooks and late expiry. |
 | `src/server/payments/provider/` | `PaymentProvider` interface; `StripeProvider` (test keys only); `SimulatedProvider` (dev/tests). |
-| `src/server/notifications/` | The one notification service (Resend), allowlist, dedupe, retries, templates. |
+| `src/server/notifications/` | The one notification service (Resend), allowlist, dedupe, retries, stale-invitation suppression, operator alerts, templates. |
+| `src/server/store/status-callback.ts` | Optional signed order-status callback to the store (outbox + bounded retries). |
+| `src/server/rate-limit.ts` | Failed-authentication limits per client address; per-link request budget. |
+| `src/app/dev/emails` | Local email preview (development only). |
 | `src/components/pay/` | Screen templates C1–C8. |
 | `worker/index.ts` | pg-boss handlers + cron sweep. |
 
@@ -45,10 +49,12 @@ every financial step is appended to `audit_events` (append-only by trigger).
 | `payment_attempts` | `participant_id`, `attempt_number`, `status`, `card_count` 1–2, `amount_minor`, `request_key` | One live attempt per participant (partial unique index). Allocation sum = attempt = obligation (deferred trigger). |
 | `card_allocations` | `attempt_id`, `position` 1–2, `amount_minor`, `status`, `provider_intent_id` (unique), `provider_account_id`, `card_brand`, `card_last4`, `auth_expires_at`, `released_at` | Masked card data only. `auth_expires_at` = processor `capture_before`. |
 | `provider_operations` | `allocation_id`, `kind` (CREATE_INTENT/CAPTURE/CANCEL/REFUND), `idempotency_key` (unique), `status` (PENDING/SUCCEEDED/FAILED/UNKNOWN), `attempts` | Every external call, its stable key and outcome. |
-| `refunds` | `allocation_id`, `amount_minor`, `currency`, `provider_refund_id`, `operator`, `reason` | Operator reversals only. |
+| `refunds` | `allocation_id`, `amount_minor`, `currency`, `provider_refund_id`, `status`, `failure_reason`, `operator`, `reason` | Operator reversals only. Trigger: refunds never exceed the card amount or change currency. A card becomes REFUNDED only when the provider confirms. |
+| `merchant_status_events` | `session_id`, `event`, `dedupe_key`, `status` (PENDING/DELIVERED/FAILED/SKIPPED), `attempts` | Store callback outbox. |
+| `merchant_request_nonces` | `signature` | Accepted merchant POST signatures within the replay window. |
 | `access_tokens` | `token_hash` (HMAC), `token_encrypted` (contributor only), `role`, `can_manage`, `pay_expires_at`, `view_expires_at`, `pay_revoked_at`, `revoked_at` | Raw tokens are never stored. |
 | `webhook_events` | `id` (provider event id), `type`, `account`, `outcome`, `processed_at` | Dedupe ledger. |
-| `notifications` | `kind`, `dedupe_key` (unique), `recipient`, `status`, `attempts`, `provider_message_id` | One per kind × session × participant. |
+| `notifications` | `kind` (INVITATION/COMPLETED/CANCELLED/EXPIRED/OPERATOR_ALERT), `dedupe_key` (unique), `recipient`, `status`, `attempts`, `provider_message_id` | One per kind × session × participant (alerts: per reason). |
 | `audit_events` | `session_id`, `participant_id`, `allocation_id`, `type`, `actor`, `data` | Append-only. |
 | `simulated_*` | | Simulated provider state (development/tests only). |
 | `pgboss.*` | | Durable job queue tables (managed by pg-boss). |
@@ -99,6 +105,13 @@ CAPTURE_FAILED.
    its deadline. One conditional update wins; the worker captures.
 6. Before the first capture every hold is re-retrieved (status, `amount_capturable`, currency,
    account, `capture_before`). Captures are separate provider operations — **not atomic**.
+7. **Uncertainty is a state.** After any provider error the object is re-read before deciding:
+   provider says captured → recorded as captured (never "failed — charge again"); still held after
+   a timeout → retried with the same idempotency key; a run that finds a card already captured by
+   an earlier run whose local write was lost records it instead of re-authorising.
+8. Operator recovery: continuation retry only when every remaining card is still a valid hold;
+   otherwise reverse (refund captured cards, cancel holds). A reversal ends in REVERSED only after
+   the provider confirms every refund; pending refunds are re-checked by the sweep and refund webhooks.
 
 ## Order → provider object mapping
 
@@ -116,7 +129,8 @@ Errors: `{"error":{"code","message","details"}}`. Codes: `BAD_REQUEST 400`, `UNA
 `STALE_VERSION 409`, `LOCKED 409`, `PAYMENT_CLOSED 409`, `PAYMENT_IN_PROGRESS 409`,
 `ORDER_ALREADY_PAID 409`, `OUT_OF_SEQUENCE 409`, `INVALID_STATE 409`, `INVALID_ALLOCATION 422`
 (details include the violation and the authoritative total), `UNSUPPORTED_CURRENCY 422`,
-`PROVIDER_UNAVAILABLE 503`.
+`PROVIDER_UNAVAILABLE 503`, `REPLAYED 409`, `RATE_LIMITED 429`, `NOT_AVAILABLE 503` (configuration).
+The store contract is specified in [STORE-INTEGRATION.md](STORE-INTEGRATION.md).
 
 **Merchant (header `X-Zaka-Signature: t=<unix>,v1=<hex HMAC-SHA256("t.METHOD.path.body")>`, 5-min window)**
 
@@ -139,7 +153,8 @@ Errors: `{"error":{"code","message","details"}}`. Codes: `BAD_REQUEST 400`, `UNA
 | POST | `/api/v1/attempts/{id}/cards/{1\|2}/result` | pay | Body ignored; server re-reads provider state. |
 | POST | `/api/v1/attempts/{id}/reset` | pay | Releases this payer's holds. |
 | POST | `/api/webhooks/stripe` | Stripe signature | Connect endpoint. |
-| GET | `/api/health` | — | DB + config check. |
+| GET | `/api/health` | — | `{ok, provider}` or `503 {ok:false, failing:"configuration"\|"database"}`. |
+| GET | `/dev/emails` | — | Local email preview; only with `EMAIL_PREVIEW_ENABLED` (refused in production). |
 
 Capabilities: initiator link = view + pay + manage; contributor link = view + pay (own share only).
 `pay`/`manage` end at the deadline or on completion/cancellation/expiry; `view` lasts 30 days.
@@ -152,7 +167,8 @@ Capabilities: initiator link = view + pay + manage; contributor link = view + pa
 | `session-expire` | sessionId | 10 | Scheduled at `expires_at` |
 | `hold-release` | allocationId | 10, backoff | Cancel a hold if inline release failed |
 | `notification-send` | notificationId | 5, backoff | Email |
-| `maintenance-sweep` | — | cron `* * * * *` | Expire overdue, resume stuck capture/release/email, sync in-flight cards |
+| `merchant-status` | eventId | 8, backoff | Store status callback (4xx = final) |
+| `maintenance-sweep` | — | cron `* * * * *` | Expire overdue, resume stuck capture/release/email/callbacks, sync in-flight cards, re-check pending refunds, prune merchant nonces |
 
 ## Where extensions connect
 
