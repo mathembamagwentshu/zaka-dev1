@@ -170,12 +170,11 @@ export async function buildSessionView(viewer: Viewer): Promise<SessionView> {
     contributorLink,
     contributorEmailMasked,
     totals: { reservedMinor, paidMinor },
-    provider: payOpen
-      ? {
-          kind: c.PAYMENT_PROVIDER,
-          publishableKey: c.PAYMENT_PROVIDER === "stripe" ? c.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? null : null,
-          accountId: c.PAYMENT_PROVIDER === "stripe" ? c.providerAccountId : null,
-        }
-      : null,
+    // The mode is always shown (the "Simulated" label); card-entry details only while paying.
+    provider: {
+      kind: c.PAYMENT_PROVIDER,
+      publishableKey: payOpen && c.PAYMENT_PROVIDER === "stripe" ? c.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? null : null,
+      accountId: payOpen && c.PAYMENT_PROVIDER === "stripe" ? c.providerAccountId : null,
+    },
   };
 }

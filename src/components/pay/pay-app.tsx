@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, WifiOff } from "lucide-react";
 import { useState } from "react";
 import { formatMoney } from "@/lib/money";
 import { Button } from "@/components/ui/button";
@@ -9,12 +9,12 @@ import { api } from "./api";
 import { InvitationSent } from "./invitation";
 import { MethodChoice } from "./method-choice";
 import { OrderSummary } from "./order-summary";
-import { AccessDenied, CaptureException, Closed, Completion, Processing } from "./outcome";
+import { AccessDenied, CaptureException, Closed, Completion, Processing, Unreachable } from "./outcome";
 import { AttemptPanel, FailureNotice, ShareCardChoice, StandaloneAllocation } from "./payer-payment";
 import { Shell } from "./shell";
 import { ShareSetup } from "./share-setup";
 import { StatusBoard } from "./status-board";
-import { useSession } from "./use-session";
+import { isTransient, useSession } from "./use-session";
 
 type ContributorScreen = "invite" | "pay" | "status";
 
@@ -23,7 +23,7 @@ type ContributorScreen = "invite" | "pay" | "status";
  * and the viewer's role. Browser state is never treated as financial truth.
  */
 export function PayApp() {
-  const { token, view, setView, error, loading, setPaused } = useSession();
+  const { token, view, setView, error, loading, setPaused, connectionLost, retryLoad } = useSession();
   const [screen, setScreen] = useState<ContributorScreen | null>(null);
 
   if (loading) {
@@ -32,6 +32,13 @@ export function PayApp() {
         <p className="flex items-center justify-center gap-2 py-24 text-muted-foreground" role="status">
           <Loader2 className="size-5 animate-spin" aria-hidden /> Loading your checkout…
         </p>
+      </Shell>
+    );
+  }
+  if (error && !view && (isTransient(error) || error.code === "NOT_AVAILABLE")) {
+    return (
+      <Shell>
+        <Unreachable code={error.code} onRetry={retryLoad} />
       </Shell>
     );
   }
@@ -175,7 +182,7 @@ export function PayApp() {
                   </Button>
                 ) : null}
                 {isInitiator && view.contributorLink ? (
-                  <Button variant="link" size="sm" className="self-start" onClick={() => setScreen("invite")}>
+                  <Button variant="link" size="sm" className="h-auto self-start whitespace-normal text-left" onClick={() => setScreen("invite")}>
                     Copy {view.others[0]?.name ?? "their"}&apos;s link again
                   </Button>
                 ) : null}
@@ -218,8 +225,16 @@ export function PayApp() {
   })();
 
   return (
-    <Shell merchantName={view.merchantName}>
-      <div className="flex flex-col gap-5">{body}</div>
+    <Shell merchantName={view.merchantName} simulated={view.provider?.kind === "simulated"}>
+      <div className="flex flex-col gap-5">
+        {connectionLost ? (
+          <p role="status" className="flex items-start gap-2 rounded-lg border border-warning/30 bg-warning-soft px-3 py-2 text-sm text-warning">
+            <WifiOff className="mt-0.5 size-4 shrink-0" aria-hidden />
+            <span>Connection lost — reconnecting. The status below may be out of date; nothing changes with your payment while you wait.</span>
+          </p>
+        ) : null}
+        {body}
+      </div>
     </Shell>
   );
 }

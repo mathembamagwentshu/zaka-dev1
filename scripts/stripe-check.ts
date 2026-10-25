@@ -3,9 +3,9 @@ import Stripe from "stripe";
 import { loadConfig } from "@/server/config";
 
 /**
- * Stripe sandbox readiness check (read-mostly). Verifies test-mode keys, the fixed connected
- * account, card capability, and performs one $0.50 manual-capture intent that is immediately
- * cancelled on the connected account. Prints IDs only — never keys.
+ * Stripe sandbox readiness check. Verifies test-mode keys, the fixed connected account and its
+ * card capability, then creates one USD 0.50 manual-capture PaymentIntent on the connected
+ * account and cancels it immediately (the only write). Prints IDs only — never keys.
  *   npm run stripe:check
  */
 async function main() {
@@ -29,9 +29,12 @@ async function main() {
   report.smokeIntent = { id: pi.id, livemode: pi.livemode, status: pi.status, captureMethod: pi.capture_method };
   const cancelled = await stripe.paymentIntents.cancel(pi.id, {}, { stripeAccount: acct });
   report.smokeIntentAfterCancel = cancelled.status;
-  const endpoints = await stripe.webhookEndpoints.list({ limit: 20 });
-  report.connectWebhookEndpoints = endpoints.data
-    .filter((e) => (e as Stripe.WebhookEndpoint & { connect?: boolean }).connect !== false)
+  // The API does not say whether an endpoint is a Connect endpoint; `npm run preflight` checks
+  // URL and events, and the Dashboard shows "Events from: Connected accounts".
+  const target = `${c.APP_URL.replace(/\/$/, "")}/api/webhooks/stripe`;
+  const endpoints = await stripe.webhookEndpoints.list({ limit: 100 });
+  report.webhookEndpointsForAppUrl = endpoints.data
+    .filter((e) => e.url === target)
     .map((e) => ({ id: e.id, url: e.url, status: e.status, events: e.enabled_events }));
   console.log(JSON.stringify(report, null, 2));
   if (pi.livemode) throw new Error("LIVE MODE DETECTED — stop.");

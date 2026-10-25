@@ -23,12 +23,15 @@ export class StripeProvider implements PaymentProvider {
     secretKey: string,
     readonly accountId: string,
     private readonly webhookSecret: string,
+    /** Contract tests point the SDK at a local mock of the Stripe API. */
+    transport: Pick<Stripe.StripeConfig, "host" | "port" | "protocol"> = {},
   ) {
     if (!/^(sk|rk)_test_/.test(secretKey)) throw new Error("Stripe adapter requires a test-mode key");
     this.stripe = new Stripe(secretKey, {
       maxNetworkRetries: 2,
       timeout: 20_000,
       appInfo: { name: "zaka-lite-sandbox" },
+      ...transport,
     });
   }
 

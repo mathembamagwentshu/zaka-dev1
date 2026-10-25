@@ -1,4 +1,4 @@
-import { AlertOctagon, ArrowLeft, Ban, CheckCircle2, Clock, Loader2, RotateCcw, ShieldX } from "lucide-react";
+import { AlertOctagon, ArrowLeft, Ban, CheckCircle2, Clock, Loader2, RotateCcw, RotateCw, ShieldX, WifiOff } from "lucide-react";
 import type { ReactNode } from "react";
 import { formatMoney } from "@/lib/money";
 import type { SessionView } from "@/lib/view-types";
@@ -149,6 +149,28 @@ export function AccessDenied({ code }: { code: string }) {
           ? "Payment links stop working after a while. If you still need to pay, ask the person who invited you to start a new checkout."
           : "Check that you copied the whole link from your email. Payment links are personal — if someone forwarded you theirs, ask them to send your own invitation."}
       </p>
+    </Centered>
+  );
+}
+
+/** The checkout couldn't be loaded for a reason unrelated to the link itself. */
+export function Unreachable({ code, onRetry }: { code: string; onRetry: () => void }) {
+  const notConfigured = code === "NOT_AVAILABLE";
+  return (
+    <Centered
+      icon={<WifiOff className="size-7 text-warning" aria-hidden />}
+      title={notConfigured ? "Checkout is temporarily unavailable" : "We can't reach Zaka right now"}
+    >
+      <p className="text-sm text-muted-foreground">
+        {notConfigured
+          ? "Payments aren't available on this sandbox at the moment. Nothing has been charged. Try again later or contact the store."
+          : code === "RATE_LIMITED"
+            ? "Too many requests in a short time. Wait a minute, then try again. Nothing has been charged."
+            : "Check your connection and try again. Your link still works and nothing has changed with your payment."}
+      </p>
+      <Button variant="secondary" className="mt-2" onClick={onRetry}>
+        <RotateCw /> Try again
+      </Button>
     </Centered>
   );
 }

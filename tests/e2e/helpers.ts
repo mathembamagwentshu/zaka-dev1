@@ -74,3 +74,24 @@ export async function expectReconciled(ref: string, totalMinor: number, cards: n
   }
   return rec;
 }
+
+/**
+ * Read the contributor's invitation from the labelled local email preview (/dev/emails), the
+ * way the contributor would receive it, and return the personal link it contains.
+ */
+export async function invitationLinkFromPreview(page: Page, sessionRef: string): Promise<string> {
+  await expect(async () => {
+    await page.goto("/dev/emails");
+    await page.getByRole("link", { name: new RegExp(`invitation.*${sessionRef}`) }).click();
+    await expect(page.getByTestId("email-subject")).toContainText(/asked you to pay/);
+  }).toPass({ timeout: 20_000 });
+  const text = await page.getByTestId("email-text").textContent();
+  const link = /https?:\/\/\S+\/pay#zk[A-Za-z0-9_-]{43}/.exec(text ?? "")?.[0];
+  expect(link, "invitation email contains a payer link").toBeTruthy();
+  return link!;
+}
+
+/** True when the page scrolls horizontally (the layout overflows the viewport). */
+export async function overflowsHorizontally(page: Page) {
+  return page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+}

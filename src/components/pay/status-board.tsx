@@ -76,14 +76,16 @@ export function StatusBoard({
           <li key={p.id} className="flex items-center gap-3 px-4 py-3">
             <StateIcon s={p.state} />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium">
+              <p className="break-words text-sm font-medium">
                 {p.isYou ? "You" : p.name ?? "Other person"}
                 {p.isYou && p.name ? <span className="font-normal text-muted-foreground"> ({p.name})</span> : null}
               </p>
               <p className="text-xs text-muted-foreground">{p.role === "INITIATOR" ? "Started the checkout" : "Invited"}</p>
             </div>
-            <span className="tabular text-sm font-semibold">{formatMoney(p.obligationMinor, view.currency)}</span>
-            <Badge tone={STATE[p.state].tone}>{STATE[p.state].text}</Badge>
+            <div className="flex shrink-0 flex-col items-end gap-1 sm:flex-row sm:items-center sm:gap-3">
+              <span className="tabular text-sm font-semibold">{formatMoney(p.obligationMinor, view.currency)}</span>
+              <Badge tone={STATE[p.state].tone}>{STATE[p.state].text}</Badge>
+            </div>
           </li>
         ))}
       </ul>

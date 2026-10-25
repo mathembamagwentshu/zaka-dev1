@@ -91,7 +91,7 @@ export async function createOperatorAlert(tx: Tx, sessionId: string, reason: str
 
 export const MAX_EMAIL_ATTEMPTS = 5;
 
-async function render(notificationId: string): Promise<RenderedEmail> {
+export async function renderNotification(notificationId: string): Promise<RenderedEmail> {
   const n = await db.notification.findUniqueOrThrow({
     where: { id: notificationId },
     include: { session: { include: { order: true, participants: true, tokens: true } } },
@@ -173,7 +173,7 @@ export async function sendNotification(notificationId: string): Promise<void> {
     }
   }
 
-  const email = await render(n.id);
+  const email = await renderNotification(n.id);
   const t = transport();
   if (!t) {
     await db.notification.update({

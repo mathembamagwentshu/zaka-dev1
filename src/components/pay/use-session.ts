@@ -32,7 +32,18 @@ export function useSession() {
   const setView = useCallback((v: SessionView) => token && setLoaded({ token, view: v }), [token]);
   const [error, setError] = useState<ApiError | null>(null);
   const [loadedFor, setLoadedFor] = useState<string | null>(null);
+  const [connectionLost, setConnectionLost] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const paused = useRef(false);
+
+  useEffect(() => {
+    // Returning from a bank (3-D Secure) redirect: Stripe appends the intent and its client
+    // secret to the URL. Drop them from the address bar; resume re-reads the result server-side.
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("payment_intent") || url.searchParams.has("redirect_status")) {
+      window.history.replaceState(null, "", url.pathname + url.hash);
+    }
+  }, []);
 
   useEffect(() => {
     if (!token) return;
@@ -48,7 +59,13 @@ export function useSession() {
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, loadAttempt]);
+
+  const retryLoad = useCallback(() => {
+    setLoadedFor(null);
+    setError(null);
+    setLoadAttempt((n) => n + 1);
+  }, []);
 
   const refresh = useCallback(async () => {
     if (!token) return;
@@ -56,7 +73,11 @@ export function useSession() {
     if (res.ok) {
       setLoaded({ token, view: res.data });
       setError(null);
-    } else if (res.error.code !== "NETWORK") {
+      setConnectionLost(false);
+    } else if (isTransient(res.error)) {
+      // Keep showing the last known state, but say it may be out of date.
+      setConnectionLost(true);
+    } else {
       setError(res.error);
     }
   }, [token]);
@@ -84,5 +105,12 @@ export function useSession() {
     loading: !missingToken && (!token || loadedFor !== token),
     refresh,
     setPaused,
+    connectionLost,
+    retryLoad,
   };
+}
+
+/** Errors that say nothing about the checkout itself: retry rather than change the screen. */
+export function isTransient(e: ApiError) {
+  return e.code === "NETWORK" || e.code === "RATE_LIMITED" || e.code === "INTERNAL" || e.status >= 502;
 }

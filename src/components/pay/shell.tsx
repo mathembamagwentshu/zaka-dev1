@@ -1,7 +1,7 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
 
-export function Shell({ merchantName, children }: { merchantName?: string | null; children: ReactNode }) {
+export function Shell({ merchantName, simulated, children }: { merchantName?: string | null; simulated?: boolean; children: ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="border-b border-border bg-surface/80 backdrop-blur">
@@ -17,12 +17,15 @@ export function Shell({ merchantName, children }: { merchantName?: string | null
               </span>
             ) : null}
           </div>
-          <span className="rounded-full border border-warning/30 bg-warning-soft px-2.5 py-0.5 text-xs font-semibold text-warning">
-            Test mode
+          <span
+            className="shrink-0 rounded-full border border-warning/30 bg-warning-soft px-2.5 py-0.5 text-xs font-semibold text-warning"
+            title={simulated ? "Payments are simulated locally; no card processor is involved." : "Stripe test mode; no real money moves."}
+          >
+            {simulated ? "Test mode · Simulated" : "Test mode"}
           </span>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:py-10">{children}</main>
+      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 [overflow-wrap:anywhere] sm:py-10">{children}</main>
       <footer className="border-t border-border py-5 text-center text-xs text-muted-foreground">
         Sandbox checkout · No real money moves · Card details are handled by the card processor, not stored by Zaka
       </footer>

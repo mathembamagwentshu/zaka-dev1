@@ -8,7 +8,7 @@ test.describe("@tour screen templates", () => {
     page.screenshot({ path: `evidence/screens/${test.info().project.name}/${name}.png`, fullPage: true });
 
   test("tour", async ({ page, browser, request }) => {
-    test.skip(!["desktop-chrome", "mobile-iphone"].includes(test.info().project.name), "captured on two devices only");
+    test.skip(!["desktop-chrome", "mobile-iphone", "tablet-ipad"].includes(test.info().project.name), "captured on three devices only");
     await page.goto("/demo-store");
     await shot(page, "00-demo-store");
     await startCheckout(page);
@@ -60,6 +60,13 @@ test.describe("@tour screen templates", () => {
     await reserveCard(page, "4242424242424242");
     await expect(page.getByText("Your share is reserved.")).toBeVisible();
     await shot(page, "C7-status-waiting");
+
+    const mail = await page.context().newPage();
+    await mail.goto("/dev/emails");
+    await mail.getByRole("link", { name: new RegExp(`invitation.*${ref}`) }).click();
+    await expect(mail.getByTestId("email-subject")).toContainText("asked you to pay");
+    await shot(mail, "dev-email-preview-invitation");
+    await mail.close();
 
     const { viewport, userAgent, deviceScaleFactor, isMobile, hasTouch } = devices["iPhone 14"];
     const ctx = await browser.newContext({ viewport, userAgent, deviceScaleFactor, isMobile, hasTouch, baseURL: test.info().project.use.baseURL });

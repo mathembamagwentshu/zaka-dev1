@@ -1,4 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
+import { config as loadDotenv } from "dotenv";
+
+// The actual-service path reads the Stripe test values from .env (never committed).
+if (process.env.E2E_PROVIDER === "stripe") loadDotenv({ quiet: true });
 
 /**
  * Browser end-to-end tests against a PRODUCTION build plus the real worker process, on an
@@ -24,6 +28,7 @@ export const e2eEnv: Record<string, string> = {
   EMAIL_ALLOWLIST: "@example.test",
   SESSION_WINDOW_MINUTES: "60",
   FAULT_INJECTION_ENABLED: "true",
+  EMAIL_PREVIEW_ENABLED: "true",
   RESEND_API_KEY: "",
 };
 
@@ -47,6 +52,7 @@ export default defineConfig({
     { name: "desktop-safari", use: { ...devices["Desktop Safari"] } },
     { name: "mobile-android", use: { ...devices["Pixel 7"] } },
     { name: "mobile-iphone", use: { ...devices["iPhone 14"] } },
+    { name: "tablet-ipad", use: { ...devices["iPad (gen 7)"] } },
   ],
   webServer: [
     {

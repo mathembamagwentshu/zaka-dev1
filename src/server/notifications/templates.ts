@@ -118,3 +118,13 @@ export function operatorAlertEmail(a: OperatorAlertInput): RenderedEmail {
   ];
   return { subject: title, text: asText(title, paragraphs), html: layout(title, paragraphs) };
 }
+
+/** Message used by `npm run email:check` to prove Resend delivery end to end. */
+export function layoutForCheck(): RenderedEmail {
+  const title = "Zaka sandbox email check";
+  const paragraphs = [
+    "This message confirms that the sandbox can send email through Resend from the configured sender.",
+    `Sent at ${new Date().toISOString()}.`,
+  ];
+  return { subject: title, text: asText(title, paragraphs), html: layout(title, paragraphs) };
+}

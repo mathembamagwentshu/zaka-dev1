@@ -1,5 +1,5 @@
 import { devices, expect, test, type Browser, type Page } from "@playwright/test";
-import { expectReconciled, reserveCard, sessionApi, startCheckout, tokenOf } from "./helpers";
+import { expectReconciled, invitationLinkFromPreview, reserveCard, sessionApi, startCheckout, tokenOf } from "./helpers";
 
 async function secondDevice(browser: Browser, projectName: string) {
   // The other person uses a different device class from the initiator.
@@ -85,6 +85,44 @@ test.describe("Contributor Split — two people, two devices", () => {
     await payShare(ben, ["40", "25.00"]);
     await expect(ben.getByRole("heading", { name: "Payment complete" })).toBeVisible({ timeout: 30_000 });
     await expectReconciled(ref, 10000, [[3500], [4000, 2500]]);
+    await ben.context().close();
+  });
+
+  test("AC-03: one card each — the contributor opens the emailed invitation and finishes first", async ({ page, browser, request }, info) => {
+    await startCheckout(page);
+    await setUpShares(page, "35");
+    const { ref } = await sessionApi(request, tokenOf(page));
+    const ben = await secondDevice(browser, info.project.name);
+    const link = await invitationLinkFromPreview(ben, ref);
+    // Opening the link (as an email scanner would) changes nothing until Ben acts.
+    expect((await sessionApi(request, tokenOf(page))).others[0].state).toBe("not_started");
+    await ben.goto(link);
+    await payShare(ben, null);
+    await expect(ben.getByText(/Your share is reserved/)).toBeVisible();
+    await expect(ben.getByText(/as soon as Ada reserves theirs/)).toBeVisible();
+    const mid = await sessionApi(request, tokenOf(page));
+    expect([mid.status, mid.others[0].state]).toEqual(["AWAITING_PAYMENT", "reserved"]);
+
+    // Ada comes back later (fresh load of her link) and pays her own share.
+    await page.reload();
+    await payShare(page, null);
+    await expect(page.getByRole("heading", { name: "Payment complete" })).toBeVisible({ timeout: 30_000 });
+    await expect(ben.getByRole("heading", { name: "Payment complete" })).toBeVisible({ timeout: 30_000 });
+    await expectReconciled(ref, 10000, [[3500], [6500]]);
+    await ben.context().close();
+  });
+
+  test("AC-03: two cards for the initiator, one for the contributor (contributor first)", async ({ page, browser, request }, info) => {
+    await startCheckout(page);
+    await setUpShares(page, "35");
+    const { contributorLink, ref } = await sessionApi(request, tokenOf(page));
+    const ben = await secondDevice(browser, info.project.name);
+    await ben.goto(contributorLink);
+    await payShare(ben, null);
+    await page.getByRole("button", { name: /Pay my share/ }).click();
+    await payShare(page, ["20", "15.00"]);
+    await expect(page.getByRole("heading", { name: "Payment complete" })).toBeVisible({ timeout: 30_000 });
+    await expectReconciled(ref, 10000, [[2000, 1500], [6500]]);
     await ben.context().close();
   });
 

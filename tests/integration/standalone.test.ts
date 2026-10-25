@@ -84,6 +84,29 @@ describe("Multi-Card Split happy path (AC-01, SIMULATED provider)", () => {
 });
 
 describe("decline, release and retry (AC-05)", () => {
+  it.each([
+    ["4000000000000002", "generic_decline", "couldn't be used|declined"],
+    ["4000000000009995", "insufficient_funds", "insufficient funds"],
+    ["4000000000000069", "expired_card", "expired"],
+  ])("first card %s declines (%s): nothing is held, card 2 is never created, amounts unlock", async (card, code, message) => {
+    const c = await standalone(10000);
+    const r = await payShare(c.viewer, [3500, 6500], [card, "4242424242424242"]);
+    expect(r.results).toHaveLength(1);
+    const s = await sessionRow(c.viewer);
+    expect(s.status).toBe("OPEN");
+    expect(s.allocations.map((a) => [a.position, a.status, a.providerIntentId !== null])).toEqual(
+      expect.arrayContaining([
+        [1, "FAILED", true],
+        [2, "RELEASED", false],
+      ]),
+    );
+    expect(await db.simulatedIntent.count()).toBe(1);
+    const v = await view(c.viewer);
+    expect(v.you.lastFailure?.position).toBe(1);
+    expect(s.allocations.find((a) => a.position === 1)?.failureCode).toContain(code);
+    expect(v.you.lastFailure?.message).toMatch(new RegExp(message, "i"));
+  });
+
   it("a later card declining after an earlier authorisation releases the earlier hold and allows a fresh attempt", async () => {
     const c = await standalone(10000);
     const first = await payShare(c.viewer, [3500, 6500], ["4242424242424242", "4000000000000002"]);
