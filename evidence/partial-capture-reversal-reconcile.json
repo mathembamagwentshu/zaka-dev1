@@ -1,0 +1,46 @@
+{
+  "sessionRef": "ZK-X35HE6WX",
+  "orderRef": "DEMO-9CD41D2E",
+  "mode": "STANDALONE",
+  "status": "REVERSED",
+  "totalMinor": 10000,
+  "currency": "USD",
+  "capturedMinor": 0,
+  "providerKind": "simulated",
+  "accountId": "acct_simulated_merchant",
+  "allocations": [
+    {
+      "allocationId": "686634d7-bd5c-4f06-ae75-19c1cf33e591",
+      "participantPosition": 1,
+      "attemptId": "9ad25f0f-539b-4956-b326-176855760c61",
+      "card": 1,
+      "amountMinor": 3500,
+      "currency": "USD",
+      "dbStatus": "REFUNDED",
+      "providerIntentId": "pi_sim_97246001160c96c32ad54099",
+      "providerStatus": "succeeded",
+      "providerAmount": 3500,
+      "providerReceived": 3500,
+      "refundedMinor": 3500,
+      "processorCaptureBefore": "2026-11-01T08:07:16.750Z",
+      "consistent": true
+    },
+    {
+      "allocationId": "acdbe535-9d6c-486d-b591-63ee6fba2ec0",
+      "participantPosition": 1,
+      "attemptId": "9ad25f0f-539b-4956-b326-176855760c61",
+      "card": 2,
+      "amountMinor": 6500,
+      "currency": "USD",
+      "dbStatus": "RELEASED",
+      "providerIntentId": "pi_sim_97095db6c524493838578944",
+      "providerStatus": "canceled",
+      "providerAmount": 6500,
+      "providerReceived": 0,
+      "refundedMinor": 0,
+      "processorCaptureBefore": "2026-11-01T08:07:16.815Z",
+      "consistent": true
+    }
+  ],
+  "consistent": true
+}

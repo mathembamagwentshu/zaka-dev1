@@ -1,0 +1,16 @@
+SESSION_CREATED | merchant
+MODE_SELECTED | payer:initiator
+FAULT_PLAN_SET | operator:tour
+ATTEMPT_STARTED | payer:initiator
+INTENT_CREATED | system
+CARD_AUTHORISED | payer:initiator
+INTENT_CREATED | system
+CARD_AUTHORISED | payer:initiator
+ATTEMPT_AUTHORISED | payer:initiator
+CAPTURE_GATE_PASSED | payer:initiator
+CARD_CAPTURED | worker
+FAULT_INJECTED_CANCEL_BEFORE_CAPTURE | fault-injection
+PARTIAL_CAPTURE_EXCEPTION | worker
+OPERATOR_REFUND | operator:tour
+SESSION_REVERSED | operator:tour
+HOLD_RELEASED | system

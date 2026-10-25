@@ -37,12 +37,14 @@ export async function reconcileSession(ref: string) {
     let providerAmount: number | null = null;
     let providerReceived: number | null = null;
     let providerAccount: string | null = null;
+    let processorCaptureBefore: string | null = null;
     if (a.providerIntentId) {
       const intent = await p.retrieveIntent(a.providerIntentId);
       providerStatus = intent.status;
       providerAmount = intent.amountMinor;
       providerReceived = intent.amountReceived;
       providerAccount = intent.accountId;
+      processorCaptureBefore = intent.captureBefore?.toISOString() ?? null;
     }
     const expected: Record<string, string[]> = {
       PENDING: [],
@@ -75,6 +77,7 @@ export async function reconcileSession(ref: string) {
       providerAmount,
       providerReceived,
       refundedMinor: a.refunds.reduce((t, r) => t + r.amountMinor, 0),
+      processorCaptureBefore,
       consistent: ok,
     });
   }

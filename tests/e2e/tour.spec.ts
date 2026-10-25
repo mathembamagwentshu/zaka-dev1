@@ -61,9 +61,8 @@ test.describe("@tour screen templates", () => {
     await expect(page.getByText("Your share is reserved.")).toBeVisible();
     await shot(page, "C7-status-waiting");
 
-    const other = devices["iPhone 14"];
-    const { defaultBrowserType: _d, ...opts } = other;
-    const ctx = await browser.newContext({ ...opts, baseURL: test.info().project.use.baseURL });
+    const { viewport, userAgent, deviceScaleFactor, isMobile, hasTouch } = devices["iPhone 14"];
+    const ctx = await browser.newContext({ viewport, userAgent, deviceScaleFactor, isMobile, hasTouch, baseURL: test.info().project.use.baseURL });
     const ben = await ctx.newPage();
     await ben.goto(contributorLink);
     await expect(ben.getByText("Ada is splitting")).toBeVisible();

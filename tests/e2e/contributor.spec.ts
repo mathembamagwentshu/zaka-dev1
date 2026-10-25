@@ -4,8 +4,8 @@ import { expectReconciled, reserveCard, sessionApi, startCheckout, tokenOf } fro
 async function secondDevice(browser: Browser, projectName: string) {
   // The other person uses a different device class from the initiator.
   const device = projectName.startsWith("mobile") ? devices["Desktop Chrome"] : devices["iPhone 14"];
-  const { defaultBrowserType: _ignored, ...options } = device;
-  const context = await browser.newContext({ ...options, baseURL: test.info().project.use.baseURL });
+  const { viewport, userAgent, deviceScaleFactor, isMobile, hasTouch } = device;
+  const context = await browser.newContext({ viewport, userAgent, deviceScaleFactor, isMobile, hasTouch, baseURL: test.info().project.use.baseURL });
   return context.newPage();
 }
 
