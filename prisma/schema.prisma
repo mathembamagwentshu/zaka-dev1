@@ -1,0 +1,359 @@
+// Zaka Lite data model. Money is always (amount_minor BIGINT-safe INT, currency CHAR(3)).
+// Financial history is append-only via audit_events; corrections are explicit events.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum PaymentMode {
+  STANDALONE
+  CONTRIBUTOR
+}
+
+enum SessionStatus {
+  OPEN // method choice / allocation, nothing locked
+  AWAITING_PAYMENT // amounts locked, payers authorising
+  CAPTURING // capture gate passed, captures in flight
+  COMPLETED
+  CAPTURE_EXCEPTION // some sources captured, another failed; fulfilment blocked
+  REVERSED // operator reversed a capture exception
+  CANCELLED
+  EXPIRED
+  SUPERSEDED // replaced by a newer checkout for the same order before lock
+}
+
+enum ParticipantRole {
+  SHOPPER
+  INITIATOR
+  CONTRIBUTOR
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  AUTHORISED
+  CAPTURED
+  FAILED
+  RELEASED
+}
+
+enum AllocationStatus {
+  PENDING
+  INTENT_CREATED
+  REQUIRES_ACTION
+  AUTHORISED
+  CAPTURED
+  FAILED
+  RELEASED
+  CAPTURE_FAILED
+  REFUNDED
+}
+
+enum OperationKind {
+  CREATE_INTENT
+  CAPTURE
+  CANCEL
+  REFUND
+}
+
+enum OperationStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  UNKNOWN
+}
+
+enum NotificationKind {
+  INVITATION
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  OUTBOX // rendered but no email provider configured (development only)
+  SUPPRESSED // recipient not on the sandbox allowlist
+  FAILED
+}
+
+model MerchantOrder {
+  id             String   @id @default(uuid()) @db.Uuid
+  merchantId     String   @map("merchant_id")
+  externalRef    String   @map("external_ref")
+  amountMinor    Int      @map("amount_minor")
+  currency       String   @db.Char(3)
+  cartVersion    String   @map("cart_version")
+  description    String?
+  returnUrl      String?  @map("return_url")
+  paidSessionId  String?  @unique @map("paid_session_id") @db.Uuid
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  sessions CheckoutSession[]
+
+  @@unique([merchantId, externalRef])
+  @@map("merchant_orders")
+}
+
+model CheckoutSession {
+  id                 String        @id @default(uuid()) @db.Uuid
+  publicRef          String        @unique @map("public_ref")
+  orderId            String        @map("order_id") @db.Uuid
+  mode               PaymentMode?
+  status             SessionStatus @default(OPEN)
+  amountMinor        Int           @map("amount_minor")
+  currency           String        @db.Char(3)
+  cartVersion        String        @map("cart_version")
+  merchantId         String        @map("merchant_id")
+  providerKind       String        @map("provider_kind")
+  providerAccountId  String        @map("provider_account_id")
+  version            Int           @default(1)
+  expiresAt          DateTime      @map("expires_at")
+  lockedAt           DateTime?     @map("locked_at")
+  lockRequestKey     String?       @map("lock_request_key")
+  terminalAt         DateTime?     @map("terminal_at")
+  terminalReason     String?       @map("terminal_reason")
+  captureStartedAt   DateTime?     @map("capture_started_at")
+  faultPlan          Json?         @map("fault_plan")
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
+
+  order         MerchantOrder    @relation(fields: [orderId], references: [id])
+  participants  Participant[]
+  attempts      PaymentAttempt[]
+  allocations   CardAllocation[]
+  tokens        AccessToken[]
+  notifications Notification[]
+  events        AuditEvent[]
+
+  @@index([orderId])
+  @@index([status, expiresAt])
+  @@map("checkout_sessions")
+}
+
+model Participant {
+  id               String          @id @default(uuid()) @db.Uuid
+  sessionId        String          @map("session_id") @db.Uuid
+  role             ParticipantRole
+  position         Int
+  displayName      String?         @map("display_name")
+  email            String?
+  obligationMinor  Int             @map("obligation_minor")
+  currency         String          @db.Char(3)
+  currentAttemptId String?         @unique @map("current_attempt_id") @db.Uuid
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+
+  session     CheckoutSession  @relation(fields: [sessionId], references: [id])
+  attempts    PaymentAttempt[] @relation("ParticipantAttempts")
+  allocations CardAllocation[]
+  tokens      AccessToken[]
+
+  @@unique([sessionId, position])
+  @@map("participants")
+}
+
+model PaymentAttempt {
+  id            String        @id @default(uuid()) @db.Uuid
+  sessionId     String        @map("session_id") @db.Uuid
+  participantId String        @map("participant_id") @db.Uuid
+  attemptNumber Int           @map("attempt_number")
+  status        AttemptStatus @default(IN_PROGRESS)
+  cardCount     Int           @map("card_count")
+  amountMinor   Int           @map("amount_minor")
+  currency      String        @db.Char(3)
+  requestKey    String?       @map("request_key")
+  failureCode   String?       @map("failure_code")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  session     CheckoutSession  @relation(fields: [sessionId], references: [id])
+  participant Participant      @relation("ParticipantAttempts", fields: [participantId], references: [id])
+  allocations CardAllocation[]
+
+  @@unique([participantId, attemptNumber])
+  @@unique([participantId, requestKey])
+  @@map("payment_attempts")
+}
+
+model CardAllocation {
+  id                 String           @id @default(uuid()) @db.Uuid
+  sessionId          String           @map("session_id") @db.Uuid
+  participantId      String           @map("participant_id") @db.Uuid
+  attemptId          String           @map("attempt_id") @db.Uuid
+  position           Int
+  amountMinor        Int              @map("amount_minor")
+  currency           String           @db.Char(3)
+  status             AllocationStatus @default(PENDING)
+  providerKind       String           @map("provider_kind")
+  providerAccountId  String           @map("provider_account_id")
+  providerIntentId   String?          @unique @map("provider_intent_id")
+  providerStatus     String?          @map("provider_status")
+  cardBrand          String?          @map("card_brand")
+  cardLast4          String?          @map("card_last4")
+  authExpiresAt      DateTime?        @map("auth_expires_at")
+  failureCode        String?          @map("failure_code")
+  failureMessage     String?          @map("failure_message")
+  authorisedAt       DateTime?        @map("authorised_at")
+  capturedAt         DateTime?        @map("captured_at")
+  releasedAt         DateTime?        @map("released_at")
+  lastSyncedAt       DateTime?        @map("last_synced_at")
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+
+  session     CheckoutSession     @relation(fields: [sessionId], references: [id])
+  participant Participant         @relation(fields: [participantId], references: [id])
+  attempt     PaymentAttempt      @relation(fields: [attemptId], references: [id])
+  operations  ProviderOperation[]
+  refunds     Refund[]
+
+  @@unique([attemptId, position])
+  @@index([sessionId])
+  @@map("card_allocations")
+}
+
+model ProviderOperation {
+  id             String          @id @default(uuid()) @db.Uuid
+  allocationId   String          @map("allocation_id") @db.Uuid
+  kind           OperationKind
+  idempotencyKey String          @unique @map("idempotency_key")
+  status         OperationStatus @default(PENDING)
+  amountMinor    Int?            @map("amount_minor")
+  currency       String?         @db.Char(3)
+  providerRef    String?         @map("provider_ref")
+  errorCode      String?         @map("error_code")
+  errorMessage   String?         @map("error_message")
+  attempts       Int             @default(0)
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+
+  allocation CardAllocation @relation(fields: [allocationId], references: [id])
+
+  @@map("provider_operations")
+}
+
+model Refund {
+  id               String   @id @default(uuid()) @db.Uuid
+  allocationId     String   @map("allocation_id") @db.Uuid
+  amountMinor      Int      @map("amount_minor")
+  currency         String   @db.Char(3)
+  providerRefundId String?  @unique @map("provider_refund_id")
+  status           String
+  reason           String
+  operator         String
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  allocation CardAllocation @relation(fields: [allocationId], references: [id])
+
+  @@map("refunds")
+}
+
+model AccessToken {
+  id             String    @id @default(uuid()) @db.Uuid
+  sessionId      String    @map("session_id") @db.Uuid
+  participantId  String    @map("participant_id") @db.Uuid
+  role           ParticipantRole
+  tokenHash      String    @unique @map("token_hash")
+  tokenEncrypted String?   @map("token_encrypted")
+  canPay         Boolean   @map("can_pay")
+  canManage      Boolean   @map("can_manage")
+  payExpiresAt   DateTime  @map("pay_expires_at")
+  viewExpiresAt  DateTime  @map("view_expires_at")
+  payRevokedAt   DateTime? @map("pay_revoked_at")
+  revokedAt      DateTime? @map("revoked_at")
+  lastUsedAt     DateTime? @map("last_used_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  session     CheckoutSession @relation(fields: [sessionId], references: [id])
+  participant Participant     @relation(fields: [participantId], references: [id])
+
+  @@index([sessionId])
+  @@map("access_tokens")
+}
+
+model WebhookEvent {
+  id          String    @id
+  type        String
+  account     String?
+  livemode    Boolean
+  objectId    String?   @map("object_id")
+  outcome     String?
+  receivedAt  DateTime  @default(now()) @map("received_at")
+  processedAt DateTime? @map("processed_at")
+
+  @@map("webhook_events")
+}
+
+model Notification {
+  id                String             @id @default(uuid()) @db.Uuid
+  sessionId         String             @map("session_id") @db.Uuid
+  participantId     String?            @map("participant_id") @db.Uuid
+  kind              NotificationKind
+  dedupeKey         String             @unique @map("dedupe_key")
+  recipient         String
+  subject           String
+  status            NotificationStatus @default(PENDING)
+  providerMessageId String?            @map("provider_message_id")
+  attempts          Int                @default(0)
+  lastError         String?            @map("last_error")
+  sentAt            DateTime?          @map("sent_at")
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+
+  session CheckoutSession @relation(fields: [sessionId], references: [id])
+
+  @@map("notifications")
+}
+
+model AuditEvent {
+  id            BigInt   @id @default(autoincrement())
+  sessionId     String?  @map("session_id") @db.Uuid
+  participantId String?  @map("participant_id") @db.Uuid
+  allocationId  String?  @map("allocation_id") @db.Uuid
+  type          String
+  actor         String
+  data          Json?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  session CheckoutSession? @relation(fields: [sessionId], references: [id])
+
+  @@index([sessionId, id])
+  @@map("audit_events")
+}
+
+// Development/test stand-in for Stripe PaymentIntents. Only used when PAYMENT_PROVIDER=simulated.
+model SimulatedIntent {
+  id               String   @id
+  accountId        String   @map("account_id")
+  amountMinor      Int      @map("amount_minor")
+  currency         String
+  status           String
+  clientSecret     String   @unique @map("client_secret")
+  metadata         Json
+  cardBrand        String?  @map("card_brand")
+  cardLast4        String?  @map("card_last4")
+  captureBefore    DateTime? @map("capture_before")
+  amountReceived   Int      @default(0) @map("amount_received")
+  amountRefunded   Int      @default(0) @map("amount_refunded")
+  lastErrorCode    String?  @map("last_error_code")
+  lastErrorMessage String?  @map("last_error_message")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@map("simulated_intents")
+}
+
+model SimulatedIdempotency {
+  key       String   @id
+  result    Json
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("simulated_idempotency")
+}

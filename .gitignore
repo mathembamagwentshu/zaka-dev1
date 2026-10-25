@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# generated
+/src/generated/
+/test-results/
+/playwright-report/
+/evidence/raw/
+!.env.example
+
+# confidential client documents are kept outside version control
+/docs/client/
