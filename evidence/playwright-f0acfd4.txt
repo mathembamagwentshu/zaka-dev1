@@ -1,0 +1,189 @@
+[WebServer] <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+[WebServer] <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+[WebServer] <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+[WebServer] <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+[WebServer] <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+[WebServer] <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+[WebServer] <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+[WebServer] <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+[WebServer] <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+[WebServer] <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+[WebServer] <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+[WebServer] (node:8264) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+[WebServer] (Use `node --trace-deprecation ...` to show where the warning was created)
+
+Running 120 tests using 2 workers
+
+  ✓    1 [desktop-chrome] › tests/e2e/branding.spec.ts:12:7 › identity and assets › favicon, SVG icon, Apple touch icon and manifest load with the right types (351ms)
+  ✓    3 [desktop-chrome] › tests/e2e/branding.spec.ts:34:7 › identity and assets › nothing is indexable; robots.txt disallows everything (119ms)
+[WebServer] <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓    4 [desktop-chrome] › tests/e2e/branding.spec.ts:41:7 › identity and assets › unknown URLs show the branded not-found page with a way back (203ms)
+  ✓    5 [desktop-chrome] › tests/e2e/branding.spec.ts:69:5 › a first-time journey has no console errors, broken assets or failed requests, and private titles (505ms)
+[WebServer] (node:8231) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+[WebServer] (Use `node --trace-deprecation ...` to show where the warning was created)
+  ✓    2 [desktop-chrome] › tests/e2e/accessibility.spec.ts:15:7 › FR-16 accessibility › no serious/critical WCAG 2.1 AA violations on key screens (4.3s)
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓    7 [desktop-chrome] › tests/e2e/accessibility.spec.ts:39:7 › FR-16 accessibility › keyboard-only Multi-Card Split purchase (2.2s)
+  ✓    6 [desktop-chrome] › tests/e2e/contributor.spec.ts:39:7 › Contributor Split — two people, two devices › AC-02: 35/65 shares with 20+15 and 40+25 cards (four cards) (5.4s)
+  ✓    8 [desktop-chrome] › tests/e2e/layout.spec.ts:16:5 › no horizontal overflow across both journeys, with long names and emails (1.0s)
+  -   10 [desktop-chrome] › tests/e2e/layout.spec.ts:49:5 › touch targets and mobile keyboards
+  ✓   11 [desktop-chrome] › tests/e2e/layout.spec.ts:72:5 › 200% and 400% zoom equivalents reflow without horizontal scrolling (645ms)
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓    9 [desktop-chrome] › tests/e2e/contributor.spec.ts:77:7 › Contributor Split — two people, two devices › AC-03: one card for the initiator, two for the contributor (4.2s)
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓   13 [desktop-chrome] › tests/e2e/contributor.spec.ts:91:7 › Contributor Split — two people, two devices › AC-03: one card each — the contributor opens the emailed invitation and finishes first (5.8s)
+  ✓   12 [desktop-chrome] › tests/e2e/layout.spec.ts:88:5 › a dropped connection is announced and the last known state is kept (8.6s)
+  ✓   15 [desktop-chrome] › tests/e2e/layout.spec.ts:107:5 › an unreachable server on first load offers a retry instead of a broken link message (486ms)
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓   14 [desktop-chrome] › tests/e2e/contributor.spec.ts:115:7 › Contributor Split — two people, two devices › AC-03: two cards for the initiator, one for the contributor (contributor first) (3.8s)
+  ✓   17 [desktop-chrome] › tests/e2e/contributor.spec.ts:129:7 › Contributor Split — two people, two devices › AC-09: initiator cancels; holds are released and the contributor link stops taking payment (1.1s)
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+[WebServer] <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓   16 [desktop-chrome] › tests/e2e/standalone.spec.ts:5:7 › Multi-Card Split › AC-01/AC-20: USD 100.00 as 35.00 + 65.00 completes and reconciles (4.8s)
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓   19 [desktop-chrome] › tests/e2e/standalone.spec.ts:36:7 › Multi-Card Split › AC-05: decline after an earlier reservation releases it; retry succeeds (4.9s)
+  ✓   20 [desktop-chrome] › tests/e2e/standalone.spec.ts:60:9 › Multi-Card Split › AC-05: 3-D Secure fail is a non-success and releases card 1 (648ms)
+  ✓   21 [desktop-chrome] › tests/e2e/standalone.spec.ts:60:9 › Multi-Card Split › AC-05: 3-D Secure abandon is a non-success and releases card 1 (663ms)
+  ✓   22 [desktop-chrome] › tests/e2e/standalone.spec.ts:72:7 › Multi-Card Split › AC-05: 3-D Secure completed reserves the card (478ms)
+  ✓   23 [desktop-chrome] › tests/e2e/standalone.spec.ts:81:7 › Multi-Card Split › AC-04/AC-19: invalid amounts block progression and never leave a stale remainder (378ms)
+  ✓   24 [desktop-chrome] › tests/e2e/standalone.spec.ts:109:5 › FR-06: an invalid link shows access denied (240ms)
+  -   25 [desktop-safari] › tests/e2e/accessibility.spec.ts:15:7 › FR-16 accessibility › no serious/critical WCAG 2.1 AA violations on key screens
+  -   26 [desktop-safari] › tests/e2e/accessibility.spec.ts:39:7 › FR-16 accessibility › keyboard-only Multi-Card Split purchase
+  -   27 [desktop-safari] › tests/e2e/branding.spec.ts:12:7 › identity and assets › favicon, SVG icon, Apple touch icon and manifest load with the right types
+  -   28 [desktop-safari] › tests/e2e/branding.spec.ts:34:7 › identity and assets › nothing is indexable; robots.txt disallows everything
+  -   29 [desktop-safari] › tests/e2e/branding.spec.ts:41:7 › identity and assets › unknown URLs show the branded not-found page with a way back
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  -   30 [desktop-safari] › tests/e2e/branding.spec.ts:69:5 › a first-time journey has no console errors, broken assets or failed requests, and private titles
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+[WebServer] {"t":"2026-10-25T10:28:32.021Z","level":"error","msg":"partial capture exception — operator action required","sessionId":"c9593d01-59a0-496d-93dc-c10a87d816e3"}
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓   18 [desktop-chrome] › tests/e2e/tour.spec.ts:10:7 › @tour screen templates › tour (13.4s)
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓   31 [desktop-safari] › tests/e2e/contributor.spec.ts:39:7 › Contributor Split — two people, two devices › AC-02: 35/65 shares with 20+15 and 40+25 cards (four cards) (5.7s)
+  ✓   32 [desktop-safari] › tests/e2e/layout.spec.ts:16:5 › no horizontal overflow across both journeys, with long names and emails (1.2s)
+  -   34 [desktop-safari] › tests/e2e/layout.spec.ts:49:5 › touch targets and mobile keyboards
+  -   35 [desktop-safari] › tests/e2e/layout.spec.ts:72:5 › 200% and 400% zoom equivalents reflow without horizontal scrolling
+  -   36 [desktop-safari] › tests/e2e/layout.spec.ts:88:5 › a dropped connection is announced and the last known state is kept
+  -   37 [desktop-safari] › tests/e2e/layout.spec.ts:107:5 › an unreachable server on first load offers a retry instead of a broken link message
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓   33 [desktop-safari] › tests/e2e/contributor.spec.ts:77:7 › Contributor Split — two people, two devices › AC-03: one card for the initiator, two for the contributor (4.1s)
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓   38 [desktop-safari] › tests/e2e/standalone.spec.ts:5:7 › Multi-Card Split › AC-01/AC-20: USD 100.00 as 35.00 + 65.00 completes and reconciles (3.5s)
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓   40 [desktop-safari] › tests/e2e/standalone.spec.ts:36:7 › Multi-Card Split › AC-05: decline after an earlier reservation releases it; retry succeeds (3.4s)
+  ✓   41 [desktop-safari] › tests/e2e/standalone.spec.ts:60:9 › Multi-Card Split › AC-05: 3-D Secure fail is a non-success and releases card 1 (756ms)
+  ✓   42 [desktop-safari] › tests/e2e/standalone.spec.ts:60:9 › Multi-Card Split › AC-05: 3-D Secure abandon is a non-success and releases card 1 (738ms)
+  ✓   43 [desktop-safari] › tests/e2e/standalone.spec.ts:72:7 › Multi-Card Split › AC-05: 3-D Secure completed reserves the card (617ms)
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓   39 [desktop-safari] › tests/e2e/contributor.spec.ts:91:7 › Contributor Split — two people, two devices › AC-03: one card each — the contributor opens the emailed invitation and finishes first (6.0s)
+  ✓   44 [desktop-safari] › tests/e2e/standalone.spec.ts:81:7 › Multi-Card Split › AC-04/AC-19: invalid amounts block progression and never leave a stale remainder (538ms)
+  ✓   46 [desktop-safari] › tests/e2e/standalone.spec.ts:109:5 › FR-06: an invalid link shows access denied (230ms)
+  -   47 [desktop-safari] › tests/e2e/tour.spec.ts:10:7 › @tour screen templates › tour
+  -   48 [mobile-android] › tests/e2e/accessibility.spec.ts:15:7 › FR-16 accessibility › no serious/critical WCAG 2.1 AA violations on key screens
+  -   49 [mobile-android] › tests/e2e/accessibility.spec.ts:39:7 › FR-16 accessibility › keyboard-only Multi-Card Split purchase
+  -   50 [mobile-android] › tests/e2e/branding.spec.ts:12:7 › identity and assets › favicon, SVG icon, Apple touch icon and manifest load with the right types
+  -   51 [mobile-android] › tests/e2e/branding.spec.ts:34:7 › identity and assets › nothing is indexable; robots.txt disallows everything
+  -   52 [mobile-android] › tests/e2e/branding.spec.ts:41:7 › identity and assets › unknown URLs show the branded not-found page with a way back
+  -   53 [mobile-android] › tests/e2e/branding.spec.ts:69:5 › a first-time journey has no console errors, broken assets or failed requests, and private titles
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓   45 [desktop-safari] › tests/e2e/contributor.spec.ts:115:7 › Contributor Split — two people, two devices › AC-03: two cards for the initiator, one for the contributor (contributor first) (3.8s)
+  ✓   55 [desktop-safari] › tests/e2e/contributor.spec.ts:129:7 › Contributor Split — two people, two devices › AC-09: initiator cancels; holds are released and the contributor link stops taking payment (1.1s)
+  ✓   56 [mobile-android] › tests/e2e/layout.spec.ts:16:5 › no horizontal overflow across both journeys, with long names and emails (1.0s)
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓   57 [mobile-android] › tests/e2e/layout.spec.ts:49:5 › touch targets and mobile keyboards (407ms)
+  -   58 [mobile-android] › tests/e2e/layout.spec.ts:72:5 › 200% and 400% zoom equivalents reflow without horizontal scrolling
+  -   59 [mobile-android] › tests/e2e/layout.spec.ts:88:5 › a dropped connection is announced and the last known state is kept
+  ✓   54 [mobile-android] › tests/e2e/contributor.spec.ts:39:7 › Contributor Split — two people, two devices › AC-02: 35/65 shares with 20+15 and 40+25 cards (four cards) (5.4s)
+  -   60 [mobile-android] › tests/e2e/layout.spec.ts:107:5 › an unreachable server on first load offers a retry instead of a broken link message
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓   62 [mobile-android] › tests/e2e/standalone.spec.ts:5:7 › Multi-Card Split › AC-01/AC-20: USD 100.00 as 35.00 + 65.00 completes and reconciles (3.3s)
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓   61 [mobile-android] › tests/e2e/contributor.spec.ts:77:7 › Contributor Split — two people, two devices › AC-03: one card for the initiator, two for the contributor (3.9s)
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓   63 [mobile-android] › tests/e2e/standalone.spec.ts:36:7 › Multi-Card Split › AC-05: decline after an earlier reservation releases it; retry succeeds (3.5s)
+  ✓   65 [mobile-android] › tests/e2e/standalone.spec.ts:60:9 › Multi-Card Split › AC-05: 3-D Secure fail is a non-success and releases card 1 (732ms)
+  ✓   66 [mobile-android] › tests/e2e/standalone.spec.ts:60:9 › Multi-Card Split › AC-05: 3-D Secure abandon is a non-success and releases card 1 (720ms)
+  ✓   67 [mobile-android] › tests/e2e/standalone.spec.ts:72:7 › Multi-Card Split › AC-05: 3-D Secure completed reserves the card (539ms)
+  ✓   68 [mobile-android] › tests/e2e/standalone.spec.ts:81:7 › Multi-Card Split › AC-04/AC-19: invalid amounts block progression and never leave a stale remainder (435ms)
+  ✓   69 [mobile-android] › tests/e2e/standalone.spec.ts:109:5 › FR-06: an invalid link shows access denied (263ms)
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  -   70 [mobile-android] › tests/e2e/tour.spec.ts:10:7 › @tour screen templates › tour
+  ✓   64 [mobile-android] › tests/e2e/contributor.spec.ts:91:7 › Contributor Split — two people, two devices › AC-03: one card each — the contributor opens the emailed invitation and finishes first (5.8s)
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓   71 [mobile-android] › tests/e2e/contributor.spec.ts:115:7 › Contributor Split — two people, two devices › AC-03: two cards for the initiator, one for the contributor (contributor first) (4.9s)
+  ✓   72 [mobile-iphone] › tests/e2e/accessibility.spec.ts:15:7 › FR-16 accessibility › no serious/critical WCAG 2.1 AA violations on key screens (5.2s)
+  -   74 [mobile-iphone] › tests/e2e/accessibility.spec.ts:39:7 › FR-16 accessibility › keyboard-only Multi-Card Split purchase
+  -   75 [mobile-iphone] › tests/e2e/branding.spec.ts:12:7 › identity and assets › favicon, SVG icon, Apple touch icon and manifest load with the right types
+  -   76 [mobile-iphone] › tests/e2e/branding.spec.ts:34:7 › identity and assets › nothing is indexable; robots.txt disallows everything
+  -   77 [mobile-iphone] › tests/e2e/branding.spec.ts:41:7 › identity and assets › unknown URLs show the branded not-found page with a way back
+  -   78 [mobile-iphone] › tests/e2e/branding.spec.ts:69:5 › a first-time journey has no console errors, broken assets or failed requests, and private titles
+  ✓   73 [mobile-android] › tests/e2e/contributor.spec.ts:129:7 › Contributor Split — two people, two devices › AC-09: initiator cancels; holds are released and the contributor link stops taking payment (1.0s)
+  ✓   80 [mobile-iphone] › tests/e2e/layout.spec.ts:16:5 › no horizontal overflow across both journeys, with long names and emails (1.2s)
+  ✓   81 [mobile-iphone] › tests/e2e/layout.spec.ts:49:5 › touch targets and mobile keyboards (539ms)
+  -   82 [mobile-iphone] › tests/e2e/layout.spec.ts:72:5 › 200% and 400% zoom equivalents reflow without horizontal scrolling
+  -   83 [mobile-iphone] › tests/e2e/layout.spec.ts:88:5 › a dropped connection is announced and the last known state is kept
+  -   84 [mobile-iphone] › tests/e2e/layout.spec.ts:107:5 › an unreachable server on first load offers a retry instead of a broken link message
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓   79 [mobile-iphone] › tests/e2e/contributor.spec.ts:39:7 › Contributor Split — two people, two devices › AC-02: 35/65 shares with 20+15 and 40+25 cards (four cards) (5.6s)
+  ✓   85 [mobile-iphone] › tests/e2e/standalone.spec.ts:5:7 › Multi-Card Split › AC-01/AC-20: USD 100.00 as 35.00 + 65.00 completes and reconciles (3.3s)
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓   87 [mobile-iphone] › tests/e2e/standalone.spec.ts:36:7 › Multi-Card Split › AC-05: decline after an earlier reservation releases it; retry succeeds (3.6s)
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓   86 [mobile-iphone] › tests/e2e/contributor.spec.ts:77:7 › Contributor Split — two people, two devices › AC-03: one card for the initiator, two for the contributor (4.0s)
+  ✓   88 [mobile-iphone] › tests/e2e/standalone.spec.ts:60:9 › Multi-Card Split › AC-05: 3-D Secure fail is a non-success and releases card 1 (809ms)
+  ✓   90 [mobile-iphone] › tests/e2e/standalone.spec.ts:60:9 › Multi-Card Split › AC-05: 3-D Secure abandon is a non-success and releases card 1 (770ms)
+  ✓   91 [mobile-iphone] › tests/e2e/standalone.spec.ts:72:7 › Multi-Card Split › AC-05: 3-D Secure completed reserves the card (647ms)
+  ✓   92 [mobile-iphone] › tests/e2e/standalone.spec.ts:81:7 › Multi-Card Split › AC-04/AC-19: invalid amounts block progression and never leave a stale remainder (509ms)
+  ✓   93 [mobile-iphone] › tests/e2e/standalone.spec.ts:109:5 › FR-06: an invalid link shows access denied (216ms)
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓   89 [mobile-iphone] › tests/e2e/contributor.spec.ts:91:7 › Contributor Split — two people, two devices › AC-03: one card each — the contributor opens the emailed invitation and finishes first (5.6s)
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓   95 [mobile-iphone] › tests/e2e/contributor.spec.ts:115:7 › Contributor Split — two people, two devices › AC-03: two cards for the initiator, one for the contributor (contributor first) (3.8s)
+  ✓   96 [mobile-iphone] › tests/e2e/contributor.spec.ts:129:7 › Contributor Split — two people, two devices › AC-09: initiator cancels; holds are released and the contributor link stops taking payment (1.1s)
+  -   97 [tablet-ipad] › tests/e2e/accessibility.spec.ts:15:7 › FR-16 accessibility › no serious/critical WCAG 2.1 AA violations on key screens
+  -   98 [tablet-ipad] › tests/e2e/accessibility.spec.ts:39:7 › FR-16 accessibility › keyboard-only Multi-Card Split purchase
+  -   99 [tablet-ipad] › tests/e2e/branding.spec.ts:12:7 › identity and assets › favicon, SVG icon, Apple touch icon and manifest load with the right types
+  -  100 [tablet-ipad] › tests/e2e/branding.spec.ts:34:7 › identity and assets › nothing is indexable; robots.txt disallows everything
+  -  101 [tablet-ipad] › tests/e2e/branding.spec.ts:41:7 › identity and assets › unknown URLs show the branded not-found page with a way back
+  -  102 [tablet-ipad] › tests/e2e/branding.spec.ts:69:5 › a first-time journey has no console errors, broken assets or failed requests, and private titles
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+[WebServer] {"t":"2026-10-25T10:29:32.049Z","level":"error","msg":"partial capture exception — operator action required","sessionId":"c96e9ab8-826c-4afc-b11c-ca3a726fcabc"}
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓   94 [mobile-iphone] › tests/e2e/tour.spec.ts:10:7 › @tour screen templates › tour (13.7s)
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓  103 [tablet-ipad] › tests/e2e/contributor.spec.ts:39:7 › Contributor Split — two people, two devices › AC-02: 35/65 shares with 20+15 and 40+25 cards (four cards) (5.9s)
+  ✓  104 [tablet-ipad] › tests/e2e/layout.spec.ts:16:5 › no horizontal overflow across both journeys, with long names and emails (1.2s)
+  ✓  106 [tablet-ipad] › tests/e2e/layout.spec.ts:49:5 › touch targets and mobile keyboards (568ms)
+  -  107 [tablet-ipad] › tests/e2e/layout.spec.ts:72:5 › 200% and 400% zoom equivalents reflow without horizontal scrolling
+  -  108 [tablet-ipad] › tests/e2e/layout.spec.ts:88:5 › a dropped connection is announced and the last known state is kept
+  -  109 [tablet-ipad] › tests/e2e/layout.spec.ts:107:5 › an unreachable server on first load offers a retry instead of a broken link message
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓  105 [tablet-ipad] › tests/e2e/contributor.spec.ts:77:7 › Contributor Split — two people, two devices › AC-03: one card for the initiator, two for the contributor (3.9s)
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓  110 [tablet-ipad] › tests/e2e/standalone.spec.ts:5:7 › Multi-Card Split › AC-01/AC-20: USD 100.00 as 35.00 + 65.00 completes and reconciles (3.3s)
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓  112 [tablet-ipad] › tests/e2e/standalone.spec.ts:36:7 › Multi-Card Split › AC-05: decline after an earlier reservation releases it; retry succeeds (3.3s)
+  ✓  113 [tablet-ipad] › tests/e2e/standalone.spec.ts:60:9 › Multi-Card Split › AC-05: 3-D Secure fail is a non-success and releases card 1 (759ms)
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓  111 [tablet-ipad] › tests/e2e/contributor.spec.ts:91:7 › Contributor Split — two people, two devices › AC-03: one card each — the contributor opens the emailed invitation and finishes first (5.8s)
+  ✓  114 [tablet-ipad] › tests/e2e/standalone.spec.ts:60:9 › Multi-Card Split › AC-05: 3-D Secure abandon is a non-success and releases card 1 (745ms)
+  ✓  116 [tablet-ipad] › tests/e2e/standalone.spec.ts:72:7 › Multi-Card Split › AC-05: 3-D Secure completed reserves the card (685ms)
+  ✓  117 [tablet-ipad] › tests/e2e/standalone.spec.ts:81:7 › Multi-Card Split › AC-04/AC-19: invalid amounts block progression and never leave a stale remainder (585ms)
+  ✓  118 [tablet-ipad] › tests/e2e/standalone.spec.ts:109:5 › FR-06: an invalid link shows access denied (230ms)
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓  115 [tablet-ipad] › tests/e2e/contributor.spec.ts:115:7 › Contributor Split — two people, two devices › AC-03: two cards for the initiator, one for the contributor (contributor first) (3.9s)
+  ✓  120 [tablet-ipad] › tests/e2e/contributor.spec.ts:129:7 › Contributor Split — two people, two devices › AC-09: initiator cancels; holds are released and the contributor link stops taking payment (1.3s)
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+[WebServer] {"t":"2026-10-25T10:29:57.065Z","level":"error","msg":"partial capture exception — operator action required","sessionId":"b2d93262-01ae-47f4-9761-695737edf7c2"}
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+  ✓  119 [tablet-ipad] › tests/e2e/tour.spec.ts:10:7 › @tour screen templates › tour (12.8s)
+
+  39 skipped
+  81 passed (2.1m)
+exit=0

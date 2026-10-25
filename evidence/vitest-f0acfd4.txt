@@ -10,6 +10,6 @@
 
  Test Files  9 passed (9)
       Tests  216 passed (216)
-   Start at  14:49:42
-   Duration  13.84s (tests 87%, import 12%, transform 1%)
+   Start at  15:57:44
+   Duration  9.47s (tests 89%, import 10%, transform 1%)
 

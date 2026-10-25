@@ -1,6 +1,6 @@
 # Acceptance checklist — Zaka Lite (SOW v1.1)
 
-**Candidate build:** `8cc941a` (branch `feature/zaka-lite-sandbox`) · **Date:** 2026-10-25 · **Actor:** implementing developer (self-assessed; no founder or reviewer has witnessed it yet)
+**Candidate build:** `f0acfd4` (branch `feature/zaka-lite-sandbox`) · **Date:** 2026-10-25 · **Actor:** implementing developer (self-assessed; no founder or reviewer has witnessed it yet)
 
 **Provider used:** SIMULATED (a local stand-in, because Stripe test credentials were not
 available) plus a contract test of the real Stripe adapter against a local mock of the Stripe API.
@@ -13,10 +13,10 @@ The scenario-by-scenario view is in [SCENARIOS.md](SCENARIOS.md). The sequence t
 remaining checks is in [HANDOVER.md §2](HANDOVER.md).
 
 **Evidence:**
-- `evidence/vitest-8cc941a.txt`: 216 tests, all pass.
+- `evidence/vitest-f0acfd4.txt`: 216 tests, all pass.
   - 99 unit tests, including 13 contract tests of the real Stripe adapter over HTTP.
   - 117 integration tests against real PostgreSQL.
-- `evidence/playwright-8cc941a.txt`: 77 browser tests pass, with 23 intentional per-project skips.
+- `evidence/playwright-f0acfd4.txt`: 81 browser tests pass, with 39 intentional per-project skips. This includes a branding and finish check: icons load, titles are private, the branded 404 page shows, and there are no console errors or broken requests.
   They ran on a production build plus the real worker, across five projects:
   - desktop Chrome (Chromium);
   - desktop Safari (Playwright WebKit, not installed Safari);
