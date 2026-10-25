@@ -1,0 +1,167 @@
+# build bb6da25 · 2026-10-25T08:15:22Z · provider=SIMULATED
+ ✓ |unit| tests/unit/allocation.test.ts > complement — automatic remainder (SOW examples, AC-19 / AC-20) > USD 100.00: entering 35.00 shows 65.00 on the other side 1ms
+ ✓ |unit| tests/unit/allocation.test.ts > complement — automatic remainder (SOW examples, AC-19 / AC-20) > editing the other field to 60.00 recalculates the first to 40.00 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > complement — automatic remainder (SOW examples, AC-19 / AC-20) > card split is against the payer's share, not the order: 35.00 share, card 20.00 → 15.00 (not 80.00) 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > complement — automatic remainder (SOW examples, AC-19 / AC-20) > USD 100.01 − 33.34 = 66.67 exactly 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > complement — automatic remainder (SOW examples, AC-19 / AC-20) > SOW cents example: 33.34 share → 10.01 + 23.33; 66.67 share → 50.00 + 16.67 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > complement — automatic remainder (SOW examples, AC-19 / AC-20) > standalone USD 100.00: card 1 = 35.00 → card 2 = 65.00 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > complement — automatic remainder (SOW examples, AC-19 / AC-20) > over-share entry (36.00 against 35.00) blocks instead of a negative remainder 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > complement — automatic remainder (SOW examples, AC-19 / AC-20) > invalid input "" → EMPTY and the dependent amount is unavailable (never stale) 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > complement — automatic remainder (SOW examples, AC-19 / AC-20) > invalid input "abc" → INVALID and the dependent amount is unavailable (never stale) 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > complement — automatic remainder (SOW examples, AC-19 / AC-20) > invalid input "-1" → NEGATIVE and the dependent amount is unavailable (never stale) 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > complement — automatic remainder (SOW examples, AC-19 / AC-20) > invalid input "1.234" → PRECISION and the dependent amount is unavailable (never stale) 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > complement — automatic remainder (SOW examples, AC-19 / AC-20) > invalid input "0" → ZERO and the dependent amount is unavailable (never stale) 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > complement — automatic remainder (SOW examples, AC-19 / AC-20) > invalid input "0.00" → ZERO and the dependent amount is unavailable (never stale) 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > complement — automatic remainder (SOW examples, AC-19 / AC-20) > entering the full total leaves a zero remainder that cannot proceed 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > complement — automatic remainder (SOW examples, AC-19 / AC-20) > provider minimum applies to both sides 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > complement — automatic remainder (SOW examples, AC-19 / AC-20) > equal split is allowed but never mandatory 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > validateSplit — server authority > accepts exact sums 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > validateSplit — server authority > rejects [3500,6400] with SUM_MISMATCH 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > validateSplit — server authority > rejects [3500,6600] with SUM_MISMATCH 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > validateSplit — server authority > rejects [10000] with WRONG_PART_COUNT 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > validateSplit — server authority > rejects [3500,3500,3000] with WRONG_PART_COUNT 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > validateSplit — server authority > rejects [35.5,9964.5] with NOT_INTEGER 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > validateSplit — server authority > rejects ["3500",6500] with NOT_INTEGER 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > validateSplit — server authority > rejects [null,6500] with NOT_INTEGER 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > validateSplit — server authority > rejects [0,10000] with NOT_POSITIVE 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > validateSplit — server authority > rejects [-500,10500] with NOT_POSITIVE 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > validateSplit — server authority > rejects [49,9951] with BELOW_MINIMUM 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > validateSplit — server authority > rejects [null,6500] with NOT_INTEGER 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > validateSplit — server authority > one-card contributor allocation must equal the full share 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > validateSplit — server authority > rejects amounts above the provider maximum 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > messages and limits > has a customer message for every error 0ms
+ ✓ |unit| tests/unit/allocation.test.ts > messages and limits > smallest splittable order is two provider minimums 0ms
+ ✓ |unit| tests/unit/money.test.ts > parseAmountInput (exact minor units, no floats) > parses 35 → 3500 1ms
+ ✓ |unit| tests/unit/money.test.ts > parseAmountInput (exact minor units, no floats) > parses 35.00 → 3500 0ms
+ ✓ |unit| tests/unit/money.test.ts > parseAmountInput (exact minor units, no floats) > parses 35.5 → 3550 0ms
+ ✓ |unit| tests/unit/money.test.ts > parseAmountInput (exact minor units, no floats) > parses 0.01 → 1 0ms
+ ✓ |unit| tests/unit/money.test.ts > parseAmountInput (exact minor units, no floats) > parses .5 → 50 0ms
+ ✓ |unit| tests/unit/money.test.ts > parseAmountInput (exact minor units, no floats) > parses 100.01 → 10001 0ms
+ ✓ |unit| tests/unit/money.test.ts > parseAmountInput (exact minor units, no floats) > parses 66.67 → 6667 0ms
+ ✓ |unit| tests/unit/money.test.ts > parseAmountInput (exact minor units, no floats) > parses $12.30 → 1230 0ms
+ ✓ |unit| tests/unit/money.test.ts > parseAmountInput (exact minor units, no floats) > parses   40.00  → 4000 0ms
+ ✓ |unit| tests/unit/money.test.ts > parseAmountInput (exact minor units, no floats) > parses 0 → 0 0ms
+ ✓ |unit| tests/unit/money.test.ts > parseAmountInput (exact minor units, no floats) > parses 999999999999 → 99999999999900 0ms
+ ✓ |unit| tests/unit/money.test.ts > parseAmountInput (exact minor units, no floats) > rejects "" with EMPTY 0ms
+ ✓ |unit| tests/unit/money.test.ts > parseAmountInput (exact minor units, no floats) > rejects "   " with EMPTY 0ms
+ ✓ |unit| tests/unit/money.test.ts > parseAmountInput (exact minor units, no floats) > rejects "-5" with NEGATIVE 0ms
+ ✓ |unit| tests/unit/money.test.ts > parseAmountInput (exact minor units, no floats) > rejects "-0.01" with NEGATIVE 0ms
+ ✓ |unit| tests/unit/money.test.ts > parseAmountInput (exact minor units, no floats) > rejects "35.001" with PRECISION 0ms
+ ✓ |unit| tests/unit/money.test.ts > parseAmountInput (exact minor units, no floats) > rejects "0.123" with PRECISION 0ms
+ ✓ |unit| tests/unit/money.test.ts > parseAmountInput (exact minor units, no floats) > rejects "abc" with INVALID 0ms
+ ✓ |unit| tests/unit/money.test.ts > parseAmountInput (exact minor units, no floats) > rejects "1,000" with INVALID 0ms
+ ✓ |unit| tests/unit/money.test.ts > parseAmountInput (exact minor units, no floats) > rejects "1e3" with INVALID 0ms
+ ✓ |unit| tests/unit/money.test.ts > parseAmountInput (exact minor units, no floats) > rejects "12.3.4" with INVALID 0ms
+ ✓ |unit| tests/unit/money.test.ts > parseAmountInput (exact minor units, no floats) > rejects "." with INVALID 0ms
+ ✓ |unit| tests/unit/money.test.ts > parseAmountInput (exact minor units, no floats) > rejects "NaN" with INVALID 0ms
+ ✓ |unit| tests/unit/money.test.ts > parseAmountInput (exact minor units, no floats) > rejects "Infinity" with INVALID 0ms
+ ✓ |unit| tests/unit/money.test.ts > parseAmountInput (exact minor units, no floats) > rejects "1234567890123" with TOO_LARGE 0ms
+ ✓ |unit| tests/unit/money.test.ts > parseAmountInput (exact minor units, no floats) > never loses cents to floating point (0.1 + 0.2 style inputs) 0ms
+ ✓ |unit| tests/unit/money.test.ts > parseAmountInput (exact minor units, no floats) > rejects an unsupported currency instead of guessing 0ms
+ ✓ |unit| tests/unit/money.test.ts > formatting goes through one currency utility > formatMoney(10000) = $100.00 0ms
+ ✓ |unit| tests/unit/money.test.ts > formatting goes through one currency utility > formatMoney(10001) = $100.01 0ms
+ ✓ |unit| tests/unit/money.test.ts > formatting goes through one currency utility > formatMoney(6667) = $66.67 0ms
+ ✓ |unit| tests/unit/money.test.ts > formatting goes through one currency utility > formatMoney(5) = $0.05 0ms
+ ✓ |unit| tests/unit/money.test.ts > formatting goes through one currency utility > formatMoney(123456789) = $1,234,567.89 0ms
+ ✓ |unit| tests/unit/money.test.ts > formatting goes through one currency utility > formatMoney(-250) = -$2.50 0ms
+ ✓ |unit| tests/unit/money.test.ts > formatting goes through one currency utility > includes the ISO code where required 0ms
+ ✓ |unit| tests/unit/money.test.ts > formatting goes through one currency utility > round-trips through the input format 0ms
+ ✓ |unit| tests/unit/money.test.ts > currency registry > enables USD only in this build 0ms
+ ✓ |unit| tests/unit/money.test.ts > currency registry > keeps exponent and provider limits in one place 0ms
+ ✓ |unit| tests/unit/money.test.ts > currency registry > sumMinor refuses non-integers 0ms
+ ✓ |unit| tests/unit/server-guards.test.ts > server-side test-only enforcement > accepts Stripe test keys 2ms
+ ✓ |unit| tests/unit/server-guards.test.ts > server-side test-only enforcement > refuses STRIPE_SECRET_KEY=sk_live_abc 0ms
+ ✓ |unit| tests/unit/server-guards.test.ts > server-side test-only enforcement > refuses STRIPE_SECRET_KEY=rk_live_abc 0ms
+ ✓ |unit| tests/unit/server-guards.test.ts > server-side test-only enforcement > refuses NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_abc 0ms
+ ✓ |unit| tests/unit/server-guards.test.ts > server-side test-only enforcement > refuses STRIPE_CONNECTED_ACCOUNT_ID= 0ms
+ ✓ |unit| tests/unit/server-guards.test.ts > server-side test-only enforcement > refuses STRIPE_WEBHOOK_SECRET= 0ms
+ ✓ |unit| tests/unit/server-guards.test.ts > server-side test-only enforcement > refuses the simulated provider in production 0ms
+ ✓ |unit| tests/unit/server-guards.test.ts > server-side test-only enforcement > requires 32-byte secrets 0ms
+ ✓ |unit| tests/unit/server-guards.test.ts > capability tokens > are 256-bit, unguessable and stored only as a keyed hash 1ms
+ ✓ |unit| tests/unit/server-guards.test.ts > capability tokens > encrypted copies round-trip and are tamper-evident 0ms
+ ✓ |unit| tests/unit/server-guards.test.ts > log redaction > masks tokens, client secrets, keys and emails 0ms
+ ✓ |unit| tests/unit/server-guards.test.ts > state transitions > terminal session states have no exits 0ms
+ ✓ |unit| tests/unit/server-guards.test.ts > state transitions > a capturing session cannot be cancelled; a completed one cannot be erased 0ms
+ ✓ |unit| tests/unit/server-guards.test.ts > state transitions > a captured card can only be refunded; a released card is final 0ms
+ ✓ |unit| tests/unit/server-guards.test.ts > merchant request signing > binds timestamp, method, path and body 0ms
+ ✓ |unit| tests/unit/server-guards.test.ts > email allowlist > matches exact addresses and @domains only 0ms
+ ✓ |integration| tests/integration/resilience.test.ts > webhooks (AC-07, AC-08) > forged signatures are rejected without touching state 151ms
+ ✓ |integration| tests/integration/resilience.test.ts > webhooks (AC-07, AC-08) > events from another connected account are rejected 31ms
+ ✓ |integration| tests/integration/resilience.test.ts > webhooks (AC-07, AC-08) > an authorisation learned only from a webhook (browser closed) is applied; duplicates are ignored 52ms
+ ✓ |integration| tests/integration/resilience.test.ts > webhooks (AC-07, AC-08) > out-of-order events cannot regress state: an old 'requires_action' event after authorisation is a no-op 42ms
+ ✓ |integration| tests/integration/resilience.test.ts > webhooks (AC-07, AC-08) > an authorisation arriving for a failed/abandoned attempt is released and cannot open the capture gate 44ms
+ ✓ |integration| tests/integration/resilience.test.ts > expiry, cancellation and races (AC-09, AC-17) > controlled expiry fixture: overdue session expires, holds are released, links lose payment capability 67ms
+ ✓ |integration| tests/integration/resilience.test.ts > expiry, cancellation and races (AC-09, AC-17) > the sweep expires sessions whose expiry job ran late or was lost 22ms
+ ✓ |integration| tests/integration/resilience.test.ts > expiry, cancellation and races (AC-09, AC-17) > the capture gate refuses after the deadline even if every card is authorised 54ms
+ ✓ |integration| tests/integration/resilience.test.ts > expiry, cancellation and races (AC-09, AC-17) > cancellation racing completion: once capture started, cancel and expiry are refused and the order stays paid 43ms
+ ✓ |integration| tests/integration/resilience.test.ts > expiry, cancellation and races (AC-09, AC-17) > concurrent cancel and final authorisation resolve to exactly one outcome 217ms
+ ✓ |integration| tests/integration/resilience.test.ts > capture failures and partial capture (AC-10, FR-12) > a hold found invalid before any capture sends that payer back to re-authorise; nothing is captured 39ms
+ ✓ |integration| tests/integration/resilience.test.ts > capture failures and partial capture (AC-10, FR-12) > partial capture → CAPTURE_EXCEPTION, fulfilment blocked; operator reversal refunds and releases 76ms
+ ✓ |integration| tests/integration/resilience.test.ts > capture failures and partial capture (AC-10, FR-12) > operator capture retry completes an exception when the hold is still valid 40ms
+ ✓ |integration| tests/integration/resilience.test.ts > capture failures and partial capture (AC-10, FR-12) > a capture timeout is reconciled with the provider before any retry (no double capture) 36ms
+ ✓ |integration| tests/integration/resilience.test.ts > capture failures and partial capture (AC-10, FR-12) > a provider outage during capture leaves the session CAPTURING and the job retries 38ms
+ ✓ |integration| tests/integration/resilience.test.ts > checkout boundary (FR-01, AC-08, AC-16) > creates sessions only from signed storefront requests 14ms
+ ✓ |integration| tests/integration/resilience.test.ts > checkout boundary (FR-01, AC-08, AC-16) > two checkouts for the same order: pre-lock session is superseded, locked one blocks a duplicate 23ms
+ ✓ |integration| tests/integration/resilience.test.ts > checkout boundary (FR-01, AC-08, AC-16) > a changed cart cancels the locked checkout safely (holds released) and starts a new one 34ms
+ ✓ |integration| tests/integration/resilience.test.ts > checkout boundary (FR-01, AC-08, AC-16) > concurrent checkout creation for one order leaves exactly one live session 17ms
+ ✓ |integration| tests/integration/resilience.test.ts > checkout boundary (FR-01, AC-08, AC-16) > a paid order cannot be charged again by a new checkout 38ms
+ ✓ |integration| tests/integration/resilience.test.ts > payer links (FR-06, AC-08) > rejects missing, malformed, unknown and revoked tokens uniformly 15ms
+ ✓ |integration| tests/integration/resilience.test.ts > payer links (FR-06, AC-08) > expired view access is refused; expired payment capability is read-only 17ms
+ ✓ |integration| tests/integration/resilience.test.ts > payer links (FR-06, AC-08) > opening a link (GET, e.g. an email scanner) never creates or changes payment state 24ms
+ ✓ |integration| tests/integration/resilience.test.ts > payer links (FR-06, AC-08) > raw tokens are never stored 17ms
+ ✓ |integration| tests/integration/resilience.test.ts > email delivery (AC-11, FR-07) > retries transient failures with one provider message, deduplicated by notification id 25ms
+ ✓ |integration| tests/integration/resilience.test.ts > email delivery (AC-11, FR-07) > recipients outside the sandbox allowlist are suppressed, not emailed 20ms
+ ✓ |integration| tests/integration/resilience.test.ts > email delivery (AC-11, FR-07) > invitation content has merchant, share, total, deadline and a personal link 18ms
+ ✓ |integration| tests/integration/resilience.test.ts > durable jobs survive restarts (AC-07) > a job enqueued before a worker restart is processed afterwards 331ms
+ ✓ |integration| tests/integration/resilience.test.ts > link-to-payment safety > the checkout URL carries the token only in the fragment 38ms
+ ✓ |integration| tests/integration/contributor.test.ts > Contributor Split — card-count combinations (AC-02, AC-03; SIMULATED provider) > 2/2 (SOW four-card example) completes with exact reconciliation 240ms
+ ✓ |integration| tests/integration/contributor.test.ts > Contributor Split — card-count combinations (AC-02, AC-03; SIMULATED provider) > 1/1 completes with exact reconciliation 71ms
+ ✓ |integration| tests/integration/contributor.test.ts > Contributor Split — card-count combinations (AC-02, AC-03; SIMULATED provider) > 1/2 completes with exact reconciliation 66ms
+ ✓ |integration| tests/integration/contributor.test.ts > Contributor Split — card-count combinations (AC-02, AC-03; SIMULATED provider) > 2/1 completes with exact reconciliation 56ms
+ ✓ |integration| tests/integration/contributor.test.ts > Contributor Split — card-count combinations (AC-02, AC-03; SIMULATED provider) > USD 100.01: obligations 33.34 + 66.67, cards 10.01 + 23.33 and 50.00 + 16.67 62ms
+ ✓ |integration| tests/integration/contributor.test.ts > Contributor Split — card-count combinations (AC-02, AC-03; SIMULATED provider) > sends one invitation and one completion notice per participant (deduplicated) 49ms
+ ✓ |integration| tests/integration/contributor.test.ts > capture gate across payers (AC-06) > one funded participant never completes the order 34ms
+ ✓ |integration| tests/integration/contributor.test.ts > capture gate across payers (AC-06) > simultaneous final authorisations produce exactly one capture per card 46ms
+ ✓ |integration| tests/integration/contributor.test.ts > capture gate across payers (AC-06) > a payer's decline releases only their own holds; the other payer's reservation stays 74ms
+ ✓ |integration| tests/integration/contributor.test.ts > amount locking and server guard (AC-09, AC-19, AC-21) > rejects mismatched sum with no invitation or payment side effect 22ms
+ ✓ |integration| tests/integration/contributor.test.ts > amount locking and server guard (AC-09, AC-19, AC-21) > rejects zero remainder with no invitation or payment side effect 17ms
+ ✓ |integration| tests/integration/contributor.test.ts > amount locking and server guard (AC-09, AC-19, AC-21) > rejects fractional with no invitation or payment side effect 19ms
+ ✓ |integration| tests/integration/contributor.test.ts > amount locking and server guard (AC-09, AC-19, AC-21) > rejects negative with no invitation or payment side effect 16ms
+ ✓ |integration| tests/integration/contributor.test.ts > amount locking and server guard (AC-09, AC-19, AC-21) > rejects over-total with no invitation or payment side effect 16ms
+ ✓ |integration| tests/integration/contributor.test.ts > amount locking and server guard (AC-09, AC-19, AC-21) > rejects unsupported currency with no invitation or payment side effect 14ms
+ ✓ |integration| tests/integration/contributor.test.ts > amount locking and server guard (AC-09, AC-19, AC-21) > rejects stale version with no invitation or payment side effect 15ms
+ ✓ |integration| tests/integration/contributor.test.ts > amount locking and server guard (AC-09, AC-19, AC-21) > rejects missing email with no invitation or payment side effect 17ms
+ ✓ |integration| tests/integration/contributor.test.ts > amount locking and server guard (AC-09, AC-19, AC-21) > shares cannot change after the invitation (client or server) 19ms
+ ✓ |integration| tests/integration/contributor.test.ts > amount locking and server guard (AC-09, AC-19, AC-21) > repeating the same lock request is idempotent (one invitation) 15ms
+ ✓ |integration| tests/integration/contributor.test.ts > amount locking and server guard (AC-09, AC-19, AC-21) > card split is against the payer's own share: 20.00 + 80.00 on a 35.00 share is rejected 19ms
+ ✓ |integration| tests/integration/contributor.test.ts > amount locking and server guard (AC-09, AC-19, AC-21) > a payer can't pay before shares are locked 16ms
+ ✓ |integration| tests/integration/contributor.test.ts > amount locking and server guard (AC-09, AC-19, AC-21) > one payer starting does not make the other payer's submission stale 29ms
+ ✓ |integration| tests/integration/contributor.test.ts > roles and privacy (AC-08) > contributor cannot manage, cancel, or touch the initiator's attempt 21ms
+ ✓ |integration| tests/integration/contributor.test.ts > roles and privacy (AC-08) > each viewer sees only their own card breakdown and no other payer's contact details 59ms
+ ✓ |integration| tests/integration/contributor.test.ts > roles and privacy (AC-08) > initiator cancellation releases every hold and revokes payment on both links 44ms
+ ✓ |integration| tests/integration/standalone.test.ts > Multi-Card Split happy path (AC-01, SIMULATED provider) > USD 100.00 as 35.00 + 65.00: sequential authorisation, gated capture, exact reconciliation 231ms
+ ✓ |integration| tests/integration/standalone.test.ts > Multi-Card Split happy path (AC-01, SIMULATED provider) > USD 100.01 with exact cents 77ms
+ ✓ |integration| tests/integration/standalone.test.ts > decline, release and retry (AC-05) > a later card declining after an earlier authorisation releases the earlier hold and allows a fresh attempt 83ms
+ ✓ |integration| tests/integration/standalone.test.ts > decline, release and retry (AC-05) > first-card decline 4000000000009995 fails the attempt without any hold 31ms
+ ✓ |integration| tests/integration/standalone.test.ts > decline, release and retry (AC-05) > first-card decline 4000000000000069 fails the attempt without any hold 28ms
+ ✓ |integration| tests/integration/standalone.test.ts > authentication (AC-05) > 3-D Secure completed → authorised 24ms
+ ✓ |integration| tests/integration/standalone.test.ts > authentication (AC-05) > 3-D Secure fail on card 2 → non-success, card 1 released 38ms
+ ✓ |integration| tests/integration/standalone.test.ts > authentication (AC-05) > 3-D Secure abandon on card 2 → non-success, card 1 released 33ms
+ ✓ |integration| tests/integration/standalone.test.ts > repeat submissions, refresh and reset (AC-07) > double-submitting the same attempt is idempotent; a different submission while in progress is refused 21ms
+ ✓ |integration| tests/integration/standalone.test.ts > repeat submissions, refresh and reset (AC-07) > preparing the same card twice returns the same provider object (no duplicate payment) 35ms
+ ✓ |integration| tests/integration/standalone.test.ts > repeat submissions, refresh and reset (AC-07) > concurrent provider requests with one idempotency key create one object 15ms
+ ✓ |integration| tests/integration/standalone.test.ts > repeat submissions, refresh and reset (AC-07) > start over releases held cards and unlocks the amounts 26ms
+ ✓ |integration| tests/integration/standalone.test.ts > server guard: bypassing the UI (AC-21) > rejects mismatched sum with no financial side effect 18ms
+ ✓ |integration| tests/integration/standalone.test.ts > server guard: bypassing the UI (AC-21) > rejects fractional minor units with no financial side effect 18ms
+ ✓ |integration| tests/integration/standalone.test.ts > server guard: bypassing the UI (AC-21) > rejects string amounts with no financial side effect 16ms
+ ✓ |integration| tests/integration/standalone.test.ts > server guard: bypassing the UI (AC-21) > rejects one card in Multi-Card Split with no financial side effect 16ms
+ ✓ |integration| tests/integration/standalone.test.ts > server guard: bypassing the UI (AC-21) > rejects three cards with no financial side effect 17ms
+ ✓ |integration| tests/integration/standalone.test.ts > server guard: bypassing the UI (AC-21) > rejects below provider minimum with no financial side effect 23ms
+ ✓ |integration| tests/integration/standalone.test.ts > server guard: bypassing the UI (AC-21) > rejects negative with no financial side effect 16ms
+ ✓ |integration| tests/integration/standalone.test.ts > server guard: bypassing the UI (AC-21) > rejects unsupported currency with no financial side effect 16ms
+ ✓ |integration| tests/integration/standalone.test.ts > server guard: bypassing the UI (AC-21) > rejects lower-case currency with no financial side effect 16ms
+ ✓ |integration| tests/integration/standalone.test.ts > server guard: bypassing the UI (AC-21) > rejects stale version with no financial side effect 16ms
+ ✓ |integration| tests/integration/standalone.test.ts > server guard: bypassing the UI (AC-21) > locked amounts cannot be changed while authorisation is in progress 18ms
+ ✓ |integration| tests/integration/standalone.test.ts > server guard: bypassing the UI (AC-21) > the order total comes from the server: the client cannot redefine it 17ms
+ Test Files  6 passed (6)
+      Tests  164 passed (164)

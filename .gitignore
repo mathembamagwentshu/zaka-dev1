@@ -50,4 +50,3 @@ next-env.d.ts
 # confidential client documents are kept outside version control
 /docs/client/
 /.next-e2e/
-/evidence/screens/
