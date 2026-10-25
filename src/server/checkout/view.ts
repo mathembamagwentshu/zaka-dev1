@@ -45,7 +45,12 @@ function toCardView(a: CardAllocation): CardView {
     status: cardStatus(a),
     brand: a.cardBrand,
     last4: a.cardLast4,
-    message: a.status === "FAILED" || a.status === "CAPTURE_FAILED" ? failureMessage(a.failureCode) : null,
+    message:
+      a.status === "CAPTURE_FAILED"
+        ? "This card couldn't be charged."
+        : a.status === "FAILED"
+          ? failureMessage(a.failureCode)
+          : null,
   };
 }
 

@@ -168,8 +168,18 @@ describe("repeat submissions, refresh and reset (AC-07)", () => {
   it("preparing the same card twice returns the same provider object (no duplicate payment)", async () => {
     const c = await standalone();
     const { attemptId } = await startAttempt(c.viewer, { cardAmountsMinor: [3500, 6500], currency: "USD", version: await versionOf(c.viewer), requestKey: key() });
-    const [p1, p2] = await Promise.all([prepareCard(c.viewer, attemptId, 1), prepareCard(c.viewer, attemptId, 1)]);
-    expect(p1.clientSecret).toBe(p2.clientSecret);
+    // Bursts of concurrent requests (double-clicks, React dev double effects, retries).
+    const burst = await Promise.all(Array.from({ length: 4 }, () => prepareCard(c.viewer, attemptId, 1)));
+    expect(new Set(burst.map((b) => b.clientSecret)).size).toBe(1);
+    const again = await Promise.all(Array.from({ length: 4 }, () => prepareCard(c.viewer, attemptId, 1)));
+    expect(again[0].clientSecret).toBe(burst[0].clientSecret);
+    expect(await db.simulatedIntent.count()).toBe(1);
+  });
+
+  it("concurrent provider requests with one idempotency key create one object", async () => {
+    const input = { amountMinor: 500, currency: "USD", idempotencyKey: `k_${key()}`, description: "t", metadata: {} };
+    const results = await Promise.all(Array.from({ length: 6 }, () => sim().createIntent(input)));
+    expect(new Set(results.map((r) => r.id)).size).toBe(1);
     expect(await db.simulatedIntent.count()).toBe(1);
   });
 

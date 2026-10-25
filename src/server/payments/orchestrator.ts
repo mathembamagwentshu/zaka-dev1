@@ -1,10 +1,10 @@
-import type { CardAllocation, CheckoutSession, PaymentAttempt, Participant } from "@/generated/prisma/client";
+import type { CardAllocation, CheckoutSession, Participant } from "@/generated/prisma/client";
 import { validateSplit } from "@/lib/allocation";
 import { isEnabledCurrency, type CurrencyCode } from "@/lib/currency";
 import { isCardCount, POLICY } from "@/lib/policy";
 import { requirePay, type Viewer } from "../access/tokens";
 import { audit } from "../audit";
-import { db, withSessionLock, type Tx } from "../db";
+import { db, withAdvisoryLock, withSessionLock, type Tx } from "../db";
 import { AppError } from "../errors";
 import { log } from "../log";
 import { newEffects, runEffects, type Effects } from "./effects";
@@ -187,7 +187,8 @@ export async function prepareCard(viewer: Viewer, attemptId: string, position: n
   let intent;
   try {
     // Same key + same parameters → the provider returns the original intent (safe retry).
-    intent = await p.createIntent({
+    // The lock stops concurrent requests for one card racing on the same idempotency key.
+    intent = await withAdvisoryLock(key, () => p.createIntent({
       amountMinor: a.amountMinor,
       currency: a.currency,
       idempotencyKey: key,
@@ -202,7 +203,7 @@ export async function prepareCard(viewer: Viewer, attemptId: string, position: n
         zaka_position: String(a.position),
         zaka_mode: session.mode ?? "",
       },
-    });
+    }));
   } catch (e) {
     await db.providerOperation.update({
       where: { idempotencyKey: key },

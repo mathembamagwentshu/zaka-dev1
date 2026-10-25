@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import Stripe from "stripe";
-import { db } from "../../db";
+import { db, withAdvisoryLock } from "../../db";
 import { log } from "../../log";
 import { toProviderEvent } from "./stripe";
 import {
@@ -52,6 +52,10 @@ export class SimulatedProvider implements PaymentProvider {
   ) {}
 
   private async idempotent<T>(key: string, fn: () => Promise<T>): Promise<T> {
+    return withAdvisoryLock(`sim:${key}`, () => this.idempotentUnlocked(key, fn));
+  }
+
+  private async idempotentUnlocked<T>(key: string, fn: () => Promise<T>): Promise<T> {
     const existing = await db.simulatedIdempotency.findUnique({ where: { key } });
     if (existing) {
       const stored = existing.result as { ok: boolean; value?: T; error?: { kind: string; code: string; message: string } };

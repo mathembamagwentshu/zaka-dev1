@@ -28,3 +28,17 @@ export async function withSessionLock<T>(sessionId: string, fn: (tx: Tx) => Prom
     { timeout: 15_000, maxWait: 10_000 },
   );
 }
+
+/**
+ * Serialise work on one logical key across processes (Postgres advisory lock held by a short
+ * transaction). Used around provider calls that must not run concurrently for the same object.
+ */
+export async function withAdvisoryLock<T>(key: string, fn: () => Promise<T>): Promise<T> {
+  return db.$transaction(
+    async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${key}, 0))`;
+      return fn();
+    },
+    { timeout: 30_000, maxWait: 30_000 },
+  );
+}
