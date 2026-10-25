@@ -24,7 +24,9 @@ export type ErrorCode =
   | "PROVIDER_UNAVAILABLE"
   | "SIGNATURE_INVALID"
   | "CONTEXT_MISMATCH"
-  | "NOT_AVAILABLE";
+  | "NOT_AVAILABLE"
+  | "REPLAYED"
+  | "RATE_LIMITED";
 
 const STATUS: Record<ErrorCode, number> = {
   BAD_REQUEST: 400,
@@ -49,6 +51,8 @@ const STATUS: Record<ErrorCode, number> = {
   SIGNATURE_INVALID: 400,
   CONTEXT_MISMATCH: 400,
   NOT_AVAILABLE: 404,
+  REPLAYED: 409,
+  RATE_LIMITED: 429,
 };
 
 export class AppError extends Error {

@@ -10,10 +10,12 @@ export interface Effects {
   release: string[];
   capture: string[];
   notify: string[];
+  /** Merchant status-callback events to deliver. */
+  merchant: string[];
 }
 
 export function newEffects(): Effects {
-  return { release: [], capture: [], notify: [] };
+  return { release: [], capture: [], notify: [], merchant: [] };
 }
 
 export async function runEffects(e: Effects) {
@@ -30,5 +32,8 @@ export async function runEffects(e: Effects) {
   }
   for (const notificationId of new Set(e.notify)) {
     await enqueue(QUEUES.notify, { notificationId }, { singletonKey: notificationId });
+  }
+  for (const eventId of new Set(e.merchant)) {
+    await enqueue(QUEUES.merchant, { eventId }, { singletonKey: eventId });
   }
 }

@@ -30,6 +30,10 @@ const schema = z.object({
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().default("Zaka Sandbox <onboarding@resend.dev>"),
   EMAIL_ALLOWLIST: z.string().default(""),
+  OPS_ALERT_EMAIL: z.email().optional(),
+  MERCHANT_STATUS_WEBHOOK_URL: z.url().optional(),
+  EMAIL_PREVIEW_ENABLED: z.stringbool().default(false),
+  RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).default(120),
   SESSION_WINDOW_MINUTES: z.coerce.number().int().min(1).max(24 * 60).default(60),
   FAULT_INJECTION_ENABLED: z.stringbool().default(false),
 });
@@ -72,6 +76,13 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     }
   } else if (c.NODE_ENV === "production" && env.ALLOW_SIMULATED_PROVIDER_IN_PRODUCTION_BUILD !== "true") {
     throw new ConfigError("The simulated payment provider is not allowed when NODE_ENV=production.");
+  }
+  if (c.EMAIL_PREVIEW_ENABLED && c.NODE_ENV === "production" && env.ALLOW_SIMULATED_PROVIDER_IN_PRODUCTION_BUILD !== "true") {
+    // The preview shows invitation links (bearer credentials); it is a local development tool.
+    throw new ConfigError("EMAIL_PREVIEW_ENABLED is a local development tool and is not allowed when NODE_ENV=production.");
+  }
+  if (c.RESEND_API_KEY && !/^re_/.test(c.RESEND_API_KEY)) {
+    throw new ConfigError("RESEND_API_KEY must be a Resend API key (re_...).");
   }
 
   return {

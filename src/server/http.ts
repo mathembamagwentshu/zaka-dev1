@@ -2,6 +2,7 @@ import { bearerFrom, resolveViewer } from "./access/tokens";
 import { ConfigError } from "./config";
 import { AppError, isAppError } from "./errors";
 import { log } from "./log";
+import { assertNotBlocked, countTokenRequest, recordFailure } from "./rate-limit";
 
 const NO_STORE = { "cache-control": "no-store", "x-content-type-options": "nosniff" };
 
@@ -42,8 +43,17 @@ export async function readJson(request: Request): Promise<Record<string, unknown
   }
 }
 
-export function viewerFrom(request: Request) {
-  return resolveViewer(bearerFrom(request));
+export async function viewerFrom(request: Request) {
+  assertNotBlocked("payer", request);
+  const token = bearerFrom(request);
+  try {
+    const viewer = await resolveViewer(token);
+    countTokenRequest(token!);
+    return viewer;
+  } catch (e) {
+    if (isAppError(e) && e.code === "LINK_INVALID") recordFailure("payer", request);
+    throw e;
+  }
 }
 
 export function requestKeyFrom(request: Request): string {

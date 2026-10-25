@@ -4,7 +4,8 @@ import { audit } from "../audit";
 import { config } from "../config";
 import { db, withSessionLock } from "../db";
 import { log } from "../log";
-import { createNotification } from "../notifications/service";
+import { createNotification, createOperatorAlert } from "../notifications/service";
+import { recordMerchantStatus } from "../store/status-callback";
 import { newEffects, runEffects } from "./effects";
 import { closeSession } from "./lifecycle";
 import { idemKey } from "./keys";
@@ -54,7 +55,33 @@ export async function runCapture(sessionId: string): Promise<void> {
   const p = provider();
   const allocations = await captureOrder(sessionId);
 
-  // 1. Before the first capture, re-verify every hold at the provider.
+  // 1. Reconcile: a card the provider already shows as captured for exactly this allocation was
+  //    captured by an earlier run whose local write was lost (crash, DB failure). Record it —
+  //    treating it as an "invalid hold" would ask the payer to pay again.
+  for (const a of allocations) {
+    if (a.status !== "AUTHORISED") continue;
+    const intent = await p.retrieveIntent(a.providerIntentId!);
+    if (intent.status === "succeeded" && !contextMismatch(a, intent) && intent.amountReceived === a.amountMinor) {
+      await withSessionLock(sessionId, async (tx) => {
+        await moveAllocation(tx, a, "CAPTURED", { capturedAt: new Date(), providerStatus: "succeeded" });
+        await tx.providerOperation.updateMany({
+          where: { allocationId: a.id, kind: "CAPTURE", status: { in: ["PENDING", "UNKNOWN"] } },
+          data: { status: "SUCCEEDED", providerRef: intent.id },
+        });
+        await audit(tx, {
+          sessionId,
+          participantId: a.participantId,
+          allocationId: a.id,
+          type: "CARD_CAPTURE_RECONCILED",
+          actor: "worker",
+          data: { providerIntentId: intent.id, amountMinor: a.amountMinor, note: "capture confirmed at provider after a lost local update" },
+        });
+      });
+      a.status = "CAPTURED";
+    }
+  }
+
+  // 2. Before the first capture, re-verify every hold at the provider.
   if (!allocations.some((a) => a.status === "CAPTURED")) {
     for (const a of allocations) {
       const intent = await p.retrieveIntent(a.providerIntentId!);
@@ -71,7 +98,7 @@ export async function runCapture(sessionId: string): Promise<void> {
 
   const fault = config().FAULT_INJECTION_ENABLED ? ((session.faultPlan ?? {}) as FaultPlan) : {};
 
-  // 2. Capture sequentially.
+  // 3. Capture sequentially.
   for (const [index, a] of allocations.entries()) {
     if (a.status === "CAPTURED") continue;
     if (a.status !== "AUTHORISED") {
@@ -94,16 +121,22 @@ export async function runCapture(sessionId: string): Promise<void> {
     try {
       intent = await p.captureIntent(a.providerIntentId!, { idempotencyKey: key, amountMinor: a.amountMinor });
     } catch (e) {
-      if (e instanceof ProviderError && e.kind !== "unknown") {
-        failure = { code: e.code ?? e.kind, message: e.message };
-      } else {
-        // Timeout / network: the capture may or may not have happened. Reconcile first.
-        await db.providerOperation.update({ where: { idempotencyKey: key }, data: { status: "UNKNOWN", errorMessage: (e as Error).message.slice(0, 500) } });
-        const actual = await p.retrieveIntent(a.providerIntentId!);
-        if (actual.status === "succeeded") intent = actual;
-        else if (actual.status === "requires_capture") throw e; // retry later with the same key
-        else failure = { code: `status_${actual.status}`, message: "Authorisation no longer capturable" };
-      }
+      // Whatever the error says, the provider object is the truth: a timed-out or "unexpected
+      // state" capture may in fact have succeeded (e.g. an earlier run crashed after capturing).
+      const definitive = e instanceof ProviderError && e.kind !== "unknown";
+      await db.providerOperation.update({
+        where: { idempotencyKey: key },
+        data: {
+          status: "UNKNOWN",
+          errorCode: e instanceof ProviderError ? e.code : null,
+          errorMessage: (e as Error).message.slice(0, 500),
+        },
+      });
+      const actual = await p.retrieveIntent(a.providerIntentId!); // throws → job retries
+      if (actual.status === "succeeded") intent = actual;
+      else if (actual.status === "requires_capture" && !definitive) throw e; // retry later with the same key
+      else if (definitive) failure = { code: (e as ProviderError).code ?? (e as ProviderError).kind, message: (e as Error).message };
+      else failure = { code: `status_${actual.status}`, message: "Authorisation no longer capturable" };
     }
 
     if (intent && intent.status === "succeeded" && intent.amountReceived === a.amountMinor) {
@@ -123,13 +156,18 @@ export async function runCapture(sessionId: string): Promise<void> {
       continue;
     }
 
+    if (intent && intent.status === "succeeded") {
+      // Captured, but not for the expected amount: never report success on a wrong amount.
+      failure ??= { code: "captured_amount_mismatch", message: `Provider captured ${intent.amountReceived}, expected ${a.amountMinor}` };
+    }
     failure ??= { code: `unexpected_${intent?.status ?? "unknown"}`, message: "Capture did not succeed" };
     await db.providerOperation.update({
       where: { idempotencyKey: key },
       data: { status: "FAILED", errorCode: failure.code, errorMessage: failure.message.slice(0, 500) },
     });
     const capturedSoFar = allocations.filter((x) => x.status === "CAPTURED").length;
-    if (capturedSoFar === 0) {
+    // Money already moved on this card (wrong amount) → exception path, never a silent re-authorise.
+    if (capturedSoFar === 0 && intent?.status !== "succeeded") {
       await abortBeforeAnyCapture(sessionId, a, `capture_failed_${failure.code}`);
     } else {
       await markPartialCapture(sessionId, a, failure);
@@ -174,6 +212,7 @@ async function abortBeforeAnyCapture(sessionId: string, a: CardAllocation, reaso
 }
 
 async function markPartialCapture(sessionId: string, failed: CardAllocation, failure: { code: string; message: string }) {
+  const effects = newEffects();
   await withSessionLock(sessionId, async (tx) => {
     const session = await tx.checkoutSession.findUniqueOrThrow({ where: { id: sessionId } });
     if (session.status !== "CAPTURING") return;
@@ -194,7 +233,12 @@ async function markPartialCapture(sessionId: string, failed: CardAllocation, fai
         fulfilment: "BLOCKED",
       },
     });
+    const alert = await createOperatorAlert(tx, sessionId, `partial capture: card ${failed.id} failed (${failure.code})`);
+    if (alert) effects.notify.push(alert);
+    const eventId = await recordMerchantStatus(tx, sessionId, "checkout.capture_exception");
+    if (eventId) effects.merchant.push(eventId);
   });
+  await runEffects(effects);
   log.error("partial capture exception — operator action required", { sessionId });
 }
 
@@ -220,6 +264,8 @@ export async function completeSession(sessionId: string) {
     await revokePayCapability(tx, sessionId);
     await audit(tx, { sessionId, type: "ORDER_COMPLETED", actor: "worker", data: { capturedTotalMinor: capturedTotal, currency: session.currency } });
     await audit(tx, { sessionId, type: "FULFILMENT_SUPPRESSED", actor: "system", data: { note: "Sandbox: real fulfilment and dispatch are disabled." } });
+    const eventId = await recordMerchantStatus(tx, sessionId, "checkout.completed");
+    if (eventId) effects.merchant.push(eventId);
     if (session.mode === "CONTRIBUTOR") {
       for (const p of session.participants) {
         if (!p.email) continue;

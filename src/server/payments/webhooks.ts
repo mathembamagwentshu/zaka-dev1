@@ -4,6 +4,7 @@ import { AppError } from "../errors";
 import { log } from "../log";
 import { syncAllocation } from "./orchestrator";
 import { provider, WebhookVerificationError } from "./provider";
+import { syncRefunds } from "./recovery";
 
 /**
  * Webhook intake. Order of checks:
@@ -65,6 +66,17 @@ export async function handleWebhook(rawBody: string, signature: string | null): 
           return { status: 500, body: { error: "retry" } };
         }
       }
+    }
+  }
+
+  if (event.objectType === "refund" && event.objectId) {
+    const refund = await db.refund.findUnique({ where: { providerRefundId: event.objectId }, include: { allocation: true } });
+    if (!refund) {
+      outcome = "unknown_object";
+    } else {
+      // As with intents, the refund is re-retrieved; the payload itself is not trusted.
+      await syncRefunds(refund.allocation.sessionId);
+      outcome = "applied";
     }
   }
 

@@ -6,7 +6,7 @@ import { json, route } from "@/server/http";
 /** Storefront → Zaka: create a checkout session for an authoritative order. HMAC-signed. */
 export const POST = route(async (request: Request) => {
   const raw = await request.text();
-  verifyMerchantRequest(request, raw);
+  await verifyMerchantRequest(request, raw, { singleUse: true });
   let body: unknown;
   try {
     body = JSON.parse(raw);

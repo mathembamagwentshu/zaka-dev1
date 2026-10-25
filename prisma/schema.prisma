@@ -73,6 +73,7 @@ enum NotificationKind {
   COMPLETED
   CANCELLED
   EXPIRED
+  OPERATOR_ALERT // sent to OPS_ALERT_EMAIL when operator action is required
 }
 
 enum NotificationStatus {
@@ -81,6 +82,13 @@ enum NotificationStatus {
   OUTBOX // rendered but no email provider configured (development only)
   SUPPRESSED // recipient not on the sandbox allowlist
   FAILED
+}
+
+enum DeliveryStatus {
+  PENDING
+  DELIVERED
+  FAILED // retries exhausted; the store can still poll the order-status API
+  SKIPPED // no callback URL configured
 }
 
 model MerchantOrder {
@@ -132,6 +140,7 @@ model CheckoutSession {
   tokens        AccessToken[]
   notifications Notification[]
   events        AuditEvent[]
+  merchantEvents MerchantStatusEvent[]
 
   @@index([orderId])
   @@index([status, expiresAt])
@@ -245,10 +254,13 @@ model Refund {
   amountMinor      Int      @map("amount_minor")
   currency         String   @db.Char(3)
   providerRefundId String?  @unique @map("provider_refund_id")
+  /// Provider refund status: pending | requires_action | succeeded | failed | canceled
   status           String
+  failureReason    String?  @map("failure_reason")
   reason           String
   operator         String
   createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at")
 
   allocation CardAllocation @relation(fields: [allocationId], references: [id])
 
@@ -312,6 +324,25 @@ model Notification {
   @@map("notifications")
 }
 
+/// Outbox for the optional signed order-status callback to the store (MERCHANT_STATUS_WEBHOOK_URL).
+/// Delivery is best-effort and never changes payment state; the store can always poll instead.
+model MerchantStatusEvent {
+  id          String         @id @default(uuid()) @db.Uuid
+  sessionId   String         @map("session_id") @db.Uuid
+  event       String
+  dedupeKey   String         @unique @map("dedupe_key")
+  status      DeliveryStatus @default(PENDING)
+  attempts    Int            @default(0)
+  lastError   String?        @map("last_error")
+  deliveredAt DateTime?      @map("delivered_at")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  session CheckoutSession @relation(fields: [sessionId], references: [id])
+
+  @@map("merchant_status_events")
+}
+
 model AuditEvent {
   id            BigInt   @id @default(autoincrement())
   sessionId     String?  @map("session_id") @db.Uuid
@@ -356,4 +387,25 @@ model SimulatedIdempotency {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("simulated_idempotency")
+}
+
+model SimulatedRefund {
+  id          String   @id
+  intentId    String   @map("intent_id")
+  amountMinor Int      @map("amount_minor")
+  status      String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("simulated_refunds")
+}
+
+/// Signatures of accepted merchant API requests, kept for the replay window so a captured
+/// signed request cannot be replayed to mint another payer link. Pruned by the sweep.
+model MerchantRequestNonce {
+  signature String   @id
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@map("merchant_request_nonces")
 }

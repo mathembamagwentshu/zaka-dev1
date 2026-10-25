@@ -94,7 +94,7 @@ test.describe("@tour screen templates", () => {
 
     await startCheckout(page);
     const v2 = await sessionApi(request, tokenOf(page));
-    ops("expire-now", v2.ref);
+    ops("expire-now", v2.ref, "tour");
     await page.reload();
     await expect(page.getByRole("heading", { name: "Time ran out" })).toBeVisible();
     await shot(page, "C7-expired");

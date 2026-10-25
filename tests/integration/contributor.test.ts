@@ -57,6 +57,7 @@ describe("Contributor Split — card-count combinations (AC-02, AC-03; SIMULATED
 
   it("sends one invitation and one completion notice per participant (deduplicated)", async () => {
     const s = await contributorSetup(10000, 3500, 6500);
+    await queue.drain(); // the worker sends the invitation as soon as the shares lock
     await payShare(s.initiator, [3500]);
     await payShare(s.contributor, [6500]);
     await queue.drain();

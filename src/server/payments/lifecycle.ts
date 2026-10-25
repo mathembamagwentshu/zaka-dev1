@@ -4,6 +4,7 @@ import { audit } from "../audit";
 import { db, withSessionLock, type Tx } from "../db";
 import { AppError } from "../errors";
 import { createNotification } from "../notifications/service";
+import { recordMerchantStatus } from "../store/status-callback";
 import { newEffects, runEffects, type Effects } from "./effects";
 import { HOLDABLE_ALLOCATION, LIVE_ATTEMPT } from "./states";
 import { moveAllocation, moveAttempt, moveSession } from "./transitions";
@@ -42,6 +43,10 @@ export async function closeSession(
   }
   await revokePayCapability(tx, session.id, now);
   await audit(tx, { sessionId: session.id, type: `SESSION_${to}`, actor, data: { reason } });
+  if (to === "CANCELLED" || to === "EXPIRED") {
+    const eventId = await recordMerchantStatus(tx, session.id, to === "CANCELLED" ? "checkout.cancelled" : "checkout.expired");
+    if (eventId) effects.merchant.push(eventId);
+  }
 
   if (session.mode === "CONTRIBUTOR" && session.lockedAt && (to === "CANCELLED" || to === "EXPIRED")) {
     for (const p of session.participants) {

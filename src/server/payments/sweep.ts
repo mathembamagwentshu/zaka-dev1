@@ -1,8 +1,10 @@
+import { TOLERANCE_S } from "../checkout/merchant-auth";
 import { db } from "../db";
 import { enqueue, QUEUES } from "../jobs";
 import { log } from "../log";
 import { expireOverdueSessions } from "./lifecycle";
 import { syncAllocation } from "./orchestrator";
+import { sessionsWithOpenRefunds, syncRefunds } from "./recovery";
 
 /**
  * Periodic backstop (every minute). Recovers work whose job was lost or whose webhook never
@@ -52,12 +54,28 @@ export async function sweep() {
     await syncAllocation(a.id, "sweep").catch((e) => log.warn("sweep sync failed", { allocationId: a.id, error: e }));
   }
 
+  const pendingMerchant = await db.merchantStatusEvent.findMany({
+    where: { status: "PENDING", updatedAt: { lt: new Date(now - 120_000) } },
+    select: { id: true },
+    take: 100,
+  });
+  for (const e of pendingMerchant) await enqueue(QUEUES.merchant, { eventId: e.id }, { singletonKey: e.id });
+
+  const refundSessions = await sessionsWithOpenRefunds();
+  for (const id of refundSessions) {
+    await syncRefunds(id).catch((e) => log.warn("sweep refund sync failed", { sessionId: id, error: e }));
+  }
+
+  await db.merchantRequestNonce.deleteMany({ where: { createdAt: { lt: new Date(now - 2 * TOLERANCE_S * 1000) } } });
+
   const summary = {
     expired,
     captures: stuckCaptures.length,
     releases: unreleased.length,
     emails: pendingMail.length,
     synced: inflight.length,
+    merchantCallbacks: pendingMerchant.length,
+    refundChecks: refundSessions.length,
   };
   if (Object.values(summary).some((v) => v > 0)) log.info("sweep", summary);
   return summary;

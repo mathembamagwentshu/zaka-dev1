@@ -12,6 +12,7 @@ export const QUEUES = {
   expire: "session-expire",
   release: "hold-release",
   notify: "notification-send",
+  merchant: "merchant-status",
   sweep: "maintenance-sweep",
 } as const;
 
@@ -34,6 +35,7 @@ const DEFAULTS: Record<QueueName, SendOptions> = {
   "session-expire": { retryLimit: 10, retryDelay: 10, retryBackoff: true },
   "hold-release": { retryLimit: 10, retryDelay: 5, retryBackoff: true },
   "notification-send": { retryLimit: 5, retryDelay: 15, retryBackoff: true },
+  "merchant-status": { retryLimit: 8, retryDelay: 10, retryBackoff: true },
   "maintenance-sweep": { retryLimit: 0 },
 };
 

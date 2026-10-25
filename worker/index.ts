@@ -7,6 +7,7 @@ import { runCapture } from "@/server/payments/capture";
 import { expireSession } from "@/server/payments/lifecycle";
 import { releaseAllocation } from "@/server/payments/release";
 import { sweep } from "@/server/payments/sweep";
+import { deliverMerchantStatus } from "@/server/store/status-callback";
 
 /**
  * Background worker: same business logic as the web app, separate process.
@@ -36,6 +37,7 @@ async function main() {
   await handle(QUEUES.expire, (d) => expireSession(d.sessionId));
   await handle(QUEUES.release, (d) => releaseAllocation(d.allocationId));
   await handle(QUEUES.notify, (d) => sendNotification(d.notificationId));
+  await handle(QUEUES.merchant, (d) => deliverMerchantStatus(d.eventId));
   await handle(QUEUES.sweep, () => sweep());
   await boss.schedule(QUEUES.sweep, "* * * * *");
 

@@ -94,7 +94,11 @@ export class StripeProvider implements PaymentProvider {
         this.opts(opts.idempotencyKey),
       ),
     );
-    return { id: refund.id, status: refund.status ?? "unknown", amountMinor: refund.amount };
+    return normaliseRefund(refund);
+  }
+
+  async retrieveRefund(id: string): Promise<ProviderRefund> {
+    return normaliseRefund(await this.call(() => this.stripe.refunds.retrieve(id, {}, this.opts())));
   }
 
   verifyWebhook(rawBody: string, signatureHeader: string | null): ProviderEvent {
@@ -139,6 +143,17 @@ export class StripeProvider implements PaymentProvider {
       throw mapStripeError(e);
     }
   }
+}
+
+function normaliseRefund(refund: Stripe.Refund): ProviderRefund {
+  return {
+    id: refund.id,
+    status: refund.status ?? "pending",
+    amountMinor: refund.amount,
+    currency: refund.currency.toUpperCase(),
+    paymentIntentId: typeof refund.payment_intent === "string" ? refund.payment_intent : (refund.payment_intent?.id ?? null),
+    failureReason: refund.failure_reason ?? null,
+  };
 }
 
 export function toProviderEvent(event: Stripe.Event): ProviderEvent {

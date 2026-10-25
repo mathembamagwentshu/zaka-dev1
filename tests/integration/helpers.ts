@@ -11,6 +11,8 @@ import { expireSession } from "@/server/payments/lifecycle";
 import { prepareCard, reportCardResult, startAttempt } from "@/server/payments/orchestrator";
 import { simulatedProvider } from "@/server/payments/provider";
 import { releaseAllocation } from "@/server/payments/release";
+import { resetRateLimitsForTests } from "@/server/rate-limit";
+import { deliverMerchantStatus } from "@/server/store/status-callback";
 
 /** Deterministic job queue: records jobs; `drain()` runs them like the worker would. */
 export class TestQueue implements JobQueue {
@@ -42,6 +44,9 @@ export class TestQueue implements JobQueue {
         case "notification-send":
           await sendNotification(d.notificationId).catch(() => undefined);
           break;
+        case "merchant-status":
+          await deliverMerchantStatus(d.eventId).catch(() => undefined);
+          break;
         default:
           break;
       }
@@ -64,7 +69,9 @@ export async function resetDb() {
   await db.$executeRawUnsafe(`TRUNCATE
     audit_events, notifications, webhook_events, refunds, provider_operations, card_allocations,
     payment_attempts, access_tokens, participants, checkout_sessions, merchant_orders,
-    simulated_intents, simulated_idempotency RESTART IDENTITY CASCADE`);
+    simulated_intents, simulated_idempotency, simulated_refunds, merchant_status_events,
+    merchant_request_nonces RESTART IDENTITY CASCADE`);
+  resetRateLimitsForTests();
 }
 
 export const key = () => randomUUID().replace(/-/g, "");

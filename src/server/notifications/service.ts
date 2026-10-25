@@ -6,7 +6,7 @@ import { audit } from "../audit";
 import { config } from "../config";
 import { db, type Tx } from "../db";
 import { log, maskEmail } from "../log";
-import { invitationEmail, terminalEmail, type RenderedEmail } from "./templates";
+import { invitationEmail, operatorAlertEmail, terminalEmail, type RenderedEmail } from "./templates";
 
 /**
  * The single notification service. Contributor sessions get one invitation and one terminal
@@ -74,6 +74,21 @@ export async function createNotification(
   return row.id;
 }
 
+/**
+ * Internal alert to OPS_ALERT_EMAIL (if configured) when an operator must act. Deduplicated per
+ * session and reason. Returns the notification id to enqueue after commit, or null.
+ */
+export async function createOperatorAlert(tx: Tx, sessionId: string, reason: string): Promise<string | null> {
+  const to = config().OPS_ALERT_EMAIL;
+  if (!to) return null;
+  const dedupeKey = `OPERATOR_ALERT:${sessionId}:${reason}`;
+  if (await tx.notification.findUnique({ where: { dedupeKey } })) return null;
+  const row = await tx.notification.create({
+    data: { sessionId, kind: "OPERATOR_ALERT", dedupeKey, recipient: to.trim().toLowerCase(), subject: reason.slice(0, 200) },
+  });
+  return row.id;
+}
+
 export const MAX_EMAIL_ATTEMPTS = 5;
 
 async function render(notificationId: string): Promise<RenderedEmail> {
@@ -84,6 +99,18 @@ async function render(notificationId: string): Promise<RenderedEmail> {
   const s = n.session;
   const currency = s.currency as CurrencyCode;
   const merchantName = config().MERCHANT_DISPLAY_NAME;
+  if (n.kind === "OPERATOR_ALERT") {
+    const captured = await db.cardAllocation.aggregate({ where: { sessionId: s.id, status: "CAPTURED" }, _sum: { amountMinor: true } });
+    return operatorAlertEmail({
+      sessionRef: s.publicRef,
+      orderRef: s.order.externalRef,
+      status: s.status,
+      reason: n.subject,
+      totalMinor: s.amountMinor,
+      capturedMinor: captured._sum.amountMinor ?? 0,
+      currency,
+    });
+  }
   const me = s.participants.find((p) => p.id === n.participantId)!;
   const initiator = s.participants.find((p) => p.role === "INITIATOR")!;
   if (n.kind === "INVITATION") {
@@ -102,7 +129,7 @@ async function render(notificationId: string): Promise<RenderedEmail> {
     });
   }
   return terminalEmail({
-    kind: n.kind,
+    kind: n.kind as "COMPLETED" | "CANCELLED" | "EXPIRED",
     recipientName: me.displayName ?? "there",
     merchantName,
     orderRef: s.order.externalRef,
@@ -127,6 +154,23 @@ export async function sendNotification(notificationId: string): Promise<void> {
       data: { kind: n.kind, recipient: maskEmail(n.recipient), reason: "not on sandbox allowlist" },
     });
     return;
+  }
+
+  // An invitation that was never sent before the checkout closed is stale: its link no longer
+  // pays, so sending it would only confuse the contributor (the terminal notice covers them).
+  if (n.kind === "INVITATION") {
+    const session = await db.checkoutSession.findUniqueOrThrow({ where: { id: n.sessionId } });
+    if (session.status !== "AWAITING_PAYMENT" || session.expiresAt <= new Date()) {
+      await db.notification.update({ where: { id: n.id }, data: { status: "SUPPRESSED", lastError: `checkout ${session.status.toLowerCase()} before sending` } });
+      await audit(db, {
+        sessionId: n.sessionId,
+        participantId: n.participantId,
+        type: "NOTIFICATION_SUPPRESSED",
+        actor: "worker",
+        data: { kind: n.kind, reason: `checkout ${session.status} before the invitation was sent` },
+      });
+      return;
+    }
   }
 
   const email = await render(n.id);

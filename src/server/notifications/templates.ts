@@ -97,3 +97,24 @@ export function terminalEmail(t: TerminalInput): RenderedEmail {
   }
   return { subject: title, text: asText(title, paragraphs), html: layout(title, paragraphs) };
 }
+
+export interface OperatorAlertInput {
+  sessionRef: string;
+  orderRef: string;
+  status: string;
+  reason: string;
+  totalMinor: number;
+  capturedMinor: number;
+  currency: CurrencyCode;
+}
+
+/** Internal alert: an operator must act (runbook §4). Contains no payer links or contact data. */
+export function operatorAlertEmail(a: OperatorAlertInput): RenderedEmail {
+  const title = `Operator action required: ${a.sessionRef} (${a.status})`;
+  const paragraphs = [
+    `Checkout ${a.sessionRef} for order ${a.orderRef} needs an operator: ${a.reason}.`,
+    `Order total ${formatMoneyWithCode(a.totalMinor, a.currency)}; captured so far ${formatMoneyWithCode(a.capturedMinor, a.currency)}. Fulfilment is blocked.`,
+    `Next steps: npm run ops -- reconcile ${a.sessionRef}, then follow docs/RUNBOOK.md section 4 (retry-capture or reverse).`,
+  ];
+  return { subject: title, text: asText(title, paragraphs), html: layout(title, paragraphs) };
+}

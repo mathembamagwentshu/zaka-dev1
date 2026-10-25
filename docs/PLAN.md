@@ -97,3 +97,22 @@ review window; cohort participants; post-handover operator and cleanup plan; rep
 Proposed browser matrix: Chrome (desktop, latest), Safari (macOS, latest), Mobile Safari
 (iPhone viewport), Chrome Android (Pixel viewport). Automated runs use Playwright Chromium,
 WebKit and device emulation — emulation is not a physical-device test.
+
+## 8. Completion pass (started 2026-10-25) — checkpoint
+
+Instruction: finish every piece of implementation that does not need external access; credentials
+are configured last. Audit of build `bb6da25`:
+
+| Area | Status before this pass | Work in this pass |
+|---|---|---|
+| Stripe adapter (create/confirm/capture/cancel/refund, Connect, webhooks) | Implemented, never run against Stripe | Add refund retrieval; reconcile after *every* capture error (not only timeouts) |
+| Operator recovery | Retry/reverse existed; retry did not reconcile uncertain captures; refund status never re-checked | Reconcile-first retry with per-card outcomes; refund status tracking + sweep; operator alert email |
+| Emails | Resend + OUTBOX; invitation could still be sent after the checkout closed | Suppress stale invitations; labelled local email preview |
+| Store integration | Signed merchant API + demo fixture; contract undocumented | Documented contract, contract tests, optional signed order-status callback with bounded retries |
+| Abuse protection | None on payer endpoints | Per-client rate limit on payer and merchant endpoints |
+| Config / ops | `stripe:check` only | `setup` (local secrets), `preflight` (per-mode prerequisites), `verify:local`, `verify:external` |
+| UI | C1–C8 done; tablet/zoom/overflow not asserted | Simulated-mode label in header, Stripe redirect clean-up, tablet project, overflow + zoom checks |
+| Docs | Plan/architecture/runbook/acceptance/handover | Scenario matrix, configuration guide, store contract; update the rest |
+
+Resume rule: if this pass is interrupted, the table above is the to-do list; `git log` shows what
+has landed.

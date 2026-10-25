@@ -46,8 +46,12 @@ export interface CreateIntentInput {
 
 export interface ProviderRefund {
   id: string;
+  /** pending | requires_action | succeeded | failed | canceled */
   status: string;
   amountMinor: number;
+  currency: string;
+  paymentIntentId: string | null;
+  failureReason: string | null;
 }
 
 export interface ProviderEvent {
@@ -93,6 +97,7 @@ export interface PaymentProvider {
     id: string,
     opts: { idempotencyKey: string; amountMinor: number; metadata: Record<string, string> },
   ): Promise<ProviderRefund>;
+  retrieveRefund(id: string): Promise<ProviderRefund>;
   /** Verify signature and parse. Throws WebhookVerificationError on any failure. */
   verifyWebhook(rawBody: string, signatureHeader: string | null): ProviderEvent;
 }

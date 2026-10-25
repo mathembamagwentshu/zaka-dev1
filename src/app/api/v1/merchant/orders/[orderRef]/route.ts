@@ -4,7 +4,7 @@ import { json, route } from "@/server/http";
 
 /** Signed merchant lookup: is the order paid (fulfilment decision)? Not available to payers. */
 export const GET = route(async (request: Request, ctx: RouteContext<"/api/v1/merchant/orders/[orderRef]">) => {
-  verifyMerchantRequest(request, "");
+  await verifyMerchantRequest(request, "", { singleUse: false });
   const { orderRef } = await ctx.params;
   return json(await merchantOrderStatus(orderRef));
 });

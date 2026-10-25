@@ -147,17 +147,47 @@ export class SimulatedProvider implements PaymentProvider {
     id: string,
     opts: { idempotencyKey: string; amountMinor: number; metadata: Record<string, string> },
   ): Promise<ProviderRefund> {
-    return this.idempotent(`refund:${opts.idempotencyKey}`, async () => {
+    const created = await this.idempotent(`refund:${opts.idempotencyKey}`, async () => {
       const row = await this.retrieveRow(id);
       if (row.status !== "succeeded" || row.amountRefunded + opts.amountMinor > row.amountReceived) {
-        throw new ProviderError("invalid_request", "charge_not_refundable", "Nothing refundable on this payment.");
+        throw new ProviderError("invalid_request", "charge_already_refunded", "Nothing refundable on this payment.");
       }
       await db.simulatedIntent.update({
         where: { id },
         data: { amountRefunded: row.amountRefunded + opts.amountMinor },
       });
-      return { id: `re_sim_${randomBytes(10).toString("hex")}`, status: "succeeded", amountMinor: opts.amountMinor };
+      const refundId = `re_sim_${randomBytes(10).toString("hex")}`;
+      const status = this.nextRefundStatus;
+      this.nextRefundStatus = "succeeded";
+      await db.simulatedRefund.create({ data: { id: refundId, intentId: id, amountMinor: opts.amountMinor, status } });
+      return { id: refundId };
     });
+    return this.retrieveRefund(created.id);
+  }
+
+  async retrieveRefund(id: string): Promise<ProviderRefund> {
+    const r = await db.simulatedRefund.findUnique({ where: { id } });
+    if (!r) throw new ProviderError("invalid_request", "resource_missing", `No such refund: '${id}'`);
+    const intent = await this.retrieveRow(r.intentId);
+    return {
+      id: r.id,
+      status: r.status,
+      amountMinor: r.amountMinor,
+      currency: intent.currency.toUpperCase(),
+      paymentIntentId: r.intentId,
+      failureReason: r.status === "failed" ? "lost_or_stolen_card" : null,
+    };
+  }
+
+  /** Test/ops hook: the next refund is created with this status (Stripe refunds can be pending). */
+  nextRefundStatus: "succeeded" | "pending" = "succeeded";
+
+  /** Test/ops hook: settle a pending simulated refund. Restores the refundable amount on failure. */
+  async settleRefund(id: string, status: "succeeded" | "failed") {
+    const r = await db.simulatedRefund.update({ where: { id }, data: { status } });
+    if (status === "failed") {
+      await db.simulatedIntent.update({ where: { id: r.intentId }, data: { amountRefunded: { decrement: r.amountMinor } } });
+    }
   }
 
   verifyWebhook(rawBody: string, signatureHeader: string | null): ProviderEvent {
@@ -266,7 +296,7 @@ export class SimulatedProvider implements PaymentProvider {
   }
 
   /** Build a Stripe-shaped event signed with the simulated webhook secret. */
-  buildSignedEvent(eventType: string, intentId: string, account = this.accountId) {
+  buildSignedEvent(eventType: string, objectId: string, account = this.accountId, objectType = "payment_intent") {
     const payload = JSON.stringify({
       id: `evt_sim_${randomBytes(12).toString("hex")}`,
       object: "event",
@@ -274,7 +304,7 @@ export class SimulatedProvider implements PaymentProvider {
       account,
       livemode: false,
       created: Math.floor(Date.now() / 1000),
-      data: { object: { id: intentId, object: "payment_intent" } },
+      data: { object: { id: objectId, object: objectType } },
     });
     const header = signer.webhooks.generateTestHeaderString({ payload, secret: this.webhookSecret });
     return { payload, header };
