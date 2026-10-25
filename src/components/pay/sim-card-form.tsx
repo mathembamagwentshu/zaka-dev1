@@ -68,8 +68,8 @@ export function SimCardForm({ token, clientSecret, submitLabel, onSettled }: Pro
       <div className="flex gap-2 rounded-lg border border-dashed border-warning/40 bg-warning-soft p-3 text-xs text-foreground">
         <FlaskConical aria-hidden className="size-4 shrink-0 text-warning" />
         <p>
-          <strong>Simulated card entry.</strong> Stripe keys aren&apos;t configured, so this sandbox uses a local stand-in for the
-          card processor. No card network is contacted.
+          <strong>Simulated card entry.</strong> This sandbox isn&apos;t connected to a card processor yet, so a local stand-in plays
+          its part. Use a test number below — no card network is contacted.
         </p>
       </div>
       <div className="flex flex-col gap-1.5">
@@ -86,7 +86,7 @@ export function SimCardForm({ token, clientSecret, submitLabel, onSettled }: Pro
           className="tabular"
         />
         <p id={`${id}-help`} className="text-xs text-muted-foreground">
-          Test numbers only. Any future expiry date and any CVC are accepted.
+          Use a test card number, or pick one below to fill it in.
         </p>
         <div className="flex flex-wrap gap-1.5 pt-1">
           {PRESETS.map((p) => (
@@ -94,7 +94,7 @@ export function SimCardForm({ token, clientSecret, submitLabel, onSettled }: Pro
               key={p.number}
               type="button"
               onClick={() => setNumber(p.number.replace(/(\d{4})(?=\d)/g, "$1 "))}
-              className="rounded-full border border-border bg-surface px-2.5 py-1 text-xs text-muted-foreground hover:border-border-strong hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="min-h-9 rounded-full border border-border bg-surface px-3 py-1.5 text-xs text-muted-foreground hover:border-border-strong hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               {p.label}
             </button>

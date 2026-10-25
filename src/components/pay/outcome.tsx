@@ -54,13 +54,15 @@ export function CaptureException({ view }: { view: SessionView }) {
     >
       {reversed ? (
         <p className="text-sm text-muted-foreground">
-          This order was not placed. Any card that was charged has been refunded in full and every other reservation was released.
+          This order was not placed. Every charge has been refunded in full and every other reservation was released. Refunds can
+          take a few days to appear on a statement.
         </p>
       ) : (
         <>
           <p className="text-sm">
-            Not every card could be charged, so <strong>the order has not been placed</strong>. Some cards below may already show a
-            charge; it will be refunded or released by our team. You don&apos;t need to do anything.
+            Not every card could be charged, so <strong>the order has not been placed</strong>. A card below may already show a
+            charge. Zaka&apos;s operators will either finish the payment or refund every charge and release every reservation. You
+            don&apos;t need to do anything, and you won&apos;t be charged twice.
           </p>
           <p className="text-xs text-muted-foreground">Reference {view.ref} · Test mode: no real money has moved.</p>
         </>
@@ -135,6 +137,9 @@ export function Closed({ view }: { view: SessionView }) {
   return (
     <Centered icon={m.icon} title={m.title}>
       <p className="text-sm text-muted-foreground">{m.body}</p>
+      <p className="text-xs text-muted-foreground">
+        {view.merchantName} · Order {view.orderRef} · {formatMoney(view.totalMinor, view.currency)} {view.currency}
+      </p>
       {view.you.attempt ? <CardList cards={view.you.attempt.cards} currency={view.currency} /> : null}
       <ReturnLink view={view} />
     </Centered>
@@ -172,5 +177,35 @@ export function Unreachable({ code, onRetry }: { code: string; onRetry: () => vo
         <RotateCw /> Try again
       </Button>
     </Centered>
+  );
+}
+
+/** Initial load: the same shapes as the checkout, so nothing jumps when it arrives. */
+export function LoadingCheckout() {
+  const bar = "rounded-md bg-surface-muted motion-safe:animate-pulse";
+  return (
+    <div className="flex flex-col gap-5" aria-busy="true">
+      <p role="status" className="sr-only">
+        Loading your checkout…
+      </p>
+      <div className="rounded-2xl border border-border bg-surface p-5 sm:p-6" aria-hidden>
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="flex flex-col gap-2">
+            <div className={`${bar} h-4 w-32`} />
+            <div className={`${bar} h-4 w-56`} />
+          </div>
+          <div className={`${bar} h-9 w-36`} />
+        </div>
+        <div className={`${bar} mt-5 h-4 w-44`} />
+      </div>
+      <div className="rounded-2xl border border-border bg-surface p-5 sm:p-6" aria-hidden>
+        <div className={`${bar} h-6 w-52`} />
+        <div className={`${bar} mt-3 h-4 w-full max-w-md`} />
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          <div className={`${bar} h-36`} />
+          <div className={`${bar} h-36`} />
+        </div>
+      </div>
+    </div>
   );
 }

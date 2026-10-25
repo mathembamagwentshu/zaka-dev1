@@ -7,8 +7,9 @@ export function OrderSummary({ view, showDeadline = true }: { view: SessionView;
     <section aria-label="Order summary" className="rounded-2xl border border-border bg-surface p-5 sm:p-6">
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
         <div className="min-w-0">
-          <p className="text-sm text-muted-foreground">{view.merchantName}</p>
-          <p className="truncate text-sm text-muted-foreground">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Paying</p>
+          <p className="text-base font-semibold">{view.merchantName}</p>
+          <p className="text-sm text-muted-foreground">
             Order <span className="font-medium text-foreground">{view.orderRef}</span>
             {view.description ? <> · {view.description}</> : null}
           </p>

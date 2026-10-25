@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { PayApp } from "@/components/pay/pay-app";
 
-export const metadata: Metadata = { title: "Pay — Zaka (sandbox)" };
+export const metadata: Metadata = { title: "Checkout" };
 
 /**
  * Payer entry point. The capability token lives in the URL fragment (`/pay#…`), which browsers

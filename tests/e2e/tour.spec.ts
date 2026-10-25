@@ -30,7 +30,7 @@ test.describe("@tour screen templates", () => {
     await expect(page.getByRole("dialog")).toBeVisible();
     await shot(page, "C6-authentication");
     await page.getByRole("button", { name: "Fail verification" }).click();
-    await expect(page.getByText("Card 2 wasn't accepted.")).toBeVisible();
+    await expect(page.getByText("Card 2 wasn't accepted")).toBeVisible();
     await shot(page, "C6-declined-released");
     await page.getByLabel("Card 1 amount").fill("35");
     await page.getByRole("button", { name: "Continue to card details" }).click();

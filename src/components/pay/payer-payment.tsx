@@ -29,7 +29,8 @@ export function FailureNotice({ view }: { view: SessionView }) {
     <Alert tone="danger">
       <AlertTriangle aria-hidden />
       <div className="flex flex-col gap-1">
-        <AlertTitle>{f.position ? `Card ${f.position} wasn't accepted.` : "Your payment didn't go through."} {f.message}</AlertTitle>
+        <AlertTitle>{f.position ? `Card ${f.position} wasn't accepted` : "Your payment didn't go through"}</AlertTitle>
+        <p>{f.message}</p>
         {f.releasedCards.length ? (
           <p>
             {f.releasedCards
@@ -43,7 +44,7 @@ export function FailureNotice({ view }: { view: SessionView }) {
         ) : (
           <p>Nothing was charged.</p>
         )}
-        <p>Try again — you can use a different card or change how you split it.</p>
+        <p>You can try again with the same or a different card, or change how you split it.</p>
       </div>
     </Alert>
   );
@@ -139,8 +140,15 @@ function ResetDialog({ token, view, onView }: Omit<Props, "setPaused">) {
 }
 
 /** Multi-Card Split allocation (C2, before lock): exactly two cards against the order total. */
+/** The previous two-card split after a failure, so a retry doesn't start from empty fields. */
+function previousSplit(view: SessionView, total: number): [number, number] | null {
+  const prev = view.you.lastFailure?.cardAmountsMinor;
+  return prev?.length === 2 && prev[0] + prev[1] === total ? [prev[0], prev[1]] : null;
+}
+
 export function StandaloneAllocation({ token, view, onView }: Omit<Props, "setPaused">) {
-  const [amounts, setAmounts] = useState<[number, number] | null>(null);
+  const initial = previousSplit(view, view.totalMinor);
+  const [amounts, setAmounts] = useState<[number, number] | null>(initial);
   const { start, busy, error } = useStart(token, onView);
   const { minChargeMinor } = getCurrency(view.currency);
   return (
@@ -158,6 +166,7 @@ export function StandaloneAllocation({ token, view, onView }: Omit<Props, "setPa
         labels={["Card 1 amount", "Card 2 amount"]}
         hints={[`At least ${formatMoney(minChargeMinor, view.currency)} per card`, null]}
         scope="order"
+        initial={initial}
         onChange={(s) => setAmounts(s.amounts)}
       />
       <SplitTotal parts={amounts} totalMinor={view.totalMinor} view={view} label="Order total" />
@@ -199,8 +208,9 @@ export function ShareCardChoice({ token, view, onView }: Omit<Props, "setPaused"
   const share = view.you.obligationMinor;
   const { minChargeMinor } = getCurrency(view.currency);
   const twoPossible = share >= minChargeMinor * 2;
-  const [count, setCount] = useState<1 | 2>(1);
-  const [amounts, setAmounts] = useState<[number, number] | null>(null);
+  const initial = previousSplit(view, share);
+  const [count, setCount] = useState<1 | 2>(initial ? 2 : 1);
+  const [amounts, setAmounts] = useState<[number, number] | null>(initial);
   const { start, busy, error } = useStart(token, onView);
   const ready = count === 1 || amounts !== null;
 
@@ -263,6 +273,7 @@ export function ShareCardChoice({ token, view, onView }: Omit<Props, "setPaused"
             labels={["Card 1 amount", "Card 2 amount"]}
             hints={[`Splits your ${formatMoney(share, view.currency)} share`, null]}
             scope="share"
+            initial={initial}
             onChange={(s) => setAmounts(s.amounts)}
           />
           <SplitTotal parts={amounts} totalMinor={share} view={view} label="Your share" />

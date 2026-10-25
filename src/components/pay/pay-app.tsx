@@ -1,6 +1,7 @@
 "use client";
 
-import { ArrowLeft, Loader2, WifiOff } from "lucide-react";
+import { ArrowLeft, WifiOff } from "lucide-react";
+import type { SessionView } from "@/lib/view-types";
 import { useState } from "react";
 import { formatMoney } from "@/lib/money";
 import { Button } from "@/components/ui/button";
@@ -9,11 +10,12 @@ import { api } from "./api";
 import { InvitationSent } from "./invitation";
 import { MethodChoice } from "./method-choice";
 import { OrderSummary } from "./order-summary";
-import { AccessDenied, CaptureException, Closed, Completion, Processing, Unreachable } from "./outcome";
+import { AccessDenied, CaptureException, Closed, Completion, LoadingCheckout, Processing, Unreachable } from "./outcome";
 import { AttemptPanel, FailureNotice, ShareCardChoice, StandaloneAllocation } from "./payer-payment";
 import { Shell } from "./shell";
 import { ShareSetup } from "./share-setup";
 import { StatusBoard } from "./status-board";
+import { useDocumentTitle } from "@/components/use-document-title";
 import { isTransient, useSession } from "./use-session";
 
 type ContributorScreen = "invite" | "pay" | "status";
@@ -25,13 +27,22 @@ type ContributorScreen = "invite" | "pay" | "status";
 export function PayApp() {
   const { token, view, setView, error, loading, setPaused, connectionLost, retryLoad } = useSession();
   const [screen, setScreen] = useState<ContributorScreen | null>(null);
+  useDocumentTitle(
+    loading
+      ? "Loading checkout"
+      : error && !view && (isTransient(error) || error.code === "NOT_AVAILABLE")
+        ? "Can't reach Zaka"
+        : error && (!view || error.code === "LINK_INVALID")
+          ? "Link not available"
+          : view
+            ? pageTitle(view, screen)
+            : "Checkout",
+  );
 
   if (loading) {
     return (
       <Shell>
-        <p className="flex items-center justify-center gap-2 py-24 text-muted-foreground" role="status">
-          <Loader2 className="size-5 animate-spin" aria-hidden /> Loading your checkout…
-        </p>
+        <LoadingCheckout />
       </Shell>
     );
   }
@@ -225,7 +236,7 @@ export function PayApp() {
   })();
 
   return (
-    <Shell merchantName={view.merchantName} simulated={view.provider?.kind === "simulated"}>
+    <Shell mode={view.provider?.kind}>
       <div className="flex flex-col gap-5">
         {connectionLost ? (
           <p role="status" className="flex items-start gap-2 rounded-lg border border-warning/30 bg-warning-soft px-3 py-2 text-sm text-warning">
@@ -237,4 +248,31 @@ export function PayApp() {
       </div>
     </Shell>
   );
+}
+
+/** Browser-tab title for the current state. Never includes names, amounts or order details. */
+function pageTitle(view: SessionView, screen: ContributorScreen | null): string {
+  switch (view.status) {
+    case "COMPLETED":
+      return "Payment complete";
+    case "CAPTURING":
+      return "Completing payment";
+    case "CAPTURE_EXCEPTION":
+      return "Payment not completed";
+    case "REVERSED":
+      return "Payment reversed";
+    case "CANCELLED":
+      return "Checkout cancelled";
+    case "EXPIRED":
+      return "Checkout expired";
+    case "SUPERSEDED":
+      return "Checkout replaced";
+  }
+  if (!view.viewer.canPay) return "Checkout expired";
+  if (!view.mode) return "Choose how to pay";
+  if (view.mode === "STANDALONE") return "Pay with two cards";
+  if (view.status === "OPEN") return "Split with someone";
+  if (screen === "invite") return "Invitation sent";
+  const done = view.you.state === "reserved" || view.you.state === "paid";
+  return done || screen === "status" ? "Payment progress" : "Pay your share";
 }

@@ -66,6 +66,8 @@ export interface FailureView {
   position: number | null;
   message: string;
   releasedCards: { position: number; amountMinor: number; last4: string | null; released: boolean }[];
+  /** The split that was tried, so the next attempt can start from it. */
+  cardAmountsMinor: number[];
 }
 
 export interface SessionView {

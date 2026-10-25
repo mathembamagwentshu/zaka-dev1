@@ -1,33 +1,42 @@
-import Image from "next/image";
 import type { ReactNode } from "react";
+import { BrandLockup } from "@/components/brand";
+import { cn } from "@/lib/utils";
 
-export function Shell({ merchantName, simulated, children }: { merchantName?: string | null; simulated?: boolean; children: ReactNode }) {
+export type PaymentMode = "stripe" | "simulated" | null | undefined;
+
+/** Compact, always-visible sandbox indicator. Says exactly which mode is running. */
+export function TestModeBadge({ mode }: { mode: PaymentMode }) {
+  const label = mode === "simulated" ? "Test mode · Simulated" : mode === "stripe" ? "Stripe test mode" : "Test mode";
+  const title =
+    mode === "simulated"
+      ? "Payments are simulated on this sandbox; no card processor is contacted."
+      : "Sandbox: Stripe test mode, no real money moves.";
+  return (
+    <span
+      className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-warning/30 bg-warning-soft px-2.5 py-1 text-xs font-semibold text-warning"
+      title={title}
+    >
+      <span className="size-1.5 rounded-full bg-warning" aria-hidden />
+      {label}
+    </span>
+  );
+}
+
+/** Page frame shared by every customer-facing screen. */
+export function Shell({ mode, children, wide }: { mode?: PaymentMode; children: ReactNode; wide?: boolean }) {
+  const width = wide ? "max-w-5xl" : "max-w-3xl";
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="border-b border-border bg-surface/80 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-3xl items-center justify-between gap-3 px-4">
-          <div className="flex min-w-0 items-center gap-2.5">
-            <Image src="/zaka-logo.png" alt="Zaka" width={28} height={28} priority />
-            <span className="font-semibold tracking-tight">Zaka</span>
-            {merchantName ? (
-              <span className="truncate text-sm text-muted-foreground">
-                <span aria-hidden> · </span>
-                <span className="sr-only">checkout for </span>
-                {merchantName}
-              </span>
-            ) : null}
-          </div>
-          <span
-            className="shrink-0 rounded-full border border-warning/30 bg-warning-soft px-2.5 py-0.5 text-xs font-semibold text-warning"
-            title={simulated ? "Payments are simulated locally; no card processor is involved." : "Stripe test mode; no real money moves."}
-          >
-            {simulated ? "Test mode · Simulated" : "Test mode"}
-          </span>
+      <header className="border-b border-border bg-surface/90 backdrop-blur">
+        <div className={cn("mx-auto flex h-16 items-center justify-between gap-3 px-4", width)}>
+          <BrandLockup />
+          <TestModeBadge mode={mode} />
         </div>
       </header>
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 [overflow-wrap:anywhere] sm:py-10">{children}</main>
-      <footer className="border-t border-border py-5 text-center text-xs text-muted-foreground">
-        Sandbox checkout · No real money moves · Card details are handled by the card processor, not stored by Zaka
+      <main className={cn("mx-auto w-full flex-1 px-4 py-6 [overflow-wrap:anywhere] sm:py-10", width)}>{children}</main>
+      <footer className="border-t border-border px-4 py-6 text-center text-xs leading-relaxed text-muted-foreground">
+        <p>Sandbox checkout — no real money moves.</p>
+        <p>Card details are handled by the card processor and never stored by Zaka.</p>
       </footer>
     </div>
   );

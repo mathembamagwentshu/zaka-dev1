@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Email preview — Zaka (local)", robots: { index: false } };
+export const metadata: Metadata = { title: "Email preview (local)", robots: { index: false, follow: false } };
 
 const STATUS_TONE: Record<string, string> = {
   SENT: "text-success",
@@ -28,10 +28,11 @@ const STATUS_TONE: Record<string, string> = {
 export default async function EmailPreviewPage({ searchParams }: PageProps<"/dev/emails">) {
   await connection();
   if (!config().EMAIL_PREVIEW_ENABLED) notFound();
-  const { id } = await searchParams;
+  const { id, width } = await searchParams;
+  const phone = width === "phone";
   const rows = await db.notification.findMany({
     orderBy: { createdAt: "desc" },
-    take: 50,
+    take: 40,
     include: { session: { select: { publicRef: true } } },
   });
   const selected = rows.find((r) => r.id === id) ?? rows[0];
@@ -64,11 +65,11 @@ export default async function EmailPreviewPage({ searchParams }: PageProps<"/dev
         </Card>
       ) : (
         <div className="grid gap-5 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
-          <nav aria-label="Emails" className="flex flex-col gap-2">
+          <nav aria-label="Emails" className="flex max-h-[420px] flex-col gap-2 overflow-y-auto pr-1 lg:sticky lg:top-6 lg:max-h-[calc(100dvh-3rem)]">
             {rows.map((r) => (
               <Link
                 key={r.id}
-                href={`/dev/emails?id=${r.id}`}
+                href={`/dev/emails?id=${r.id}${phone ? "&width=phone" : ""}`}
                 aria-current={r.id === selected?.id ? "page" : undefined}
                 className={cn(
                   "rounded-lg border border-border bg-surface px-3 py-2.5 text-sm transition-colors hover:border-brand/40",
@@ -96,11 +97,27 @@ export default async function EmailPreviewPage({ searchParams }: PageProps<"/dev
                     {selected.lastError ? <span className="text-xs text-muted-foreground">{selected.lastError}</span> : null}
                   </div>
                   <p className="break-words text-base font-semibold" data-testid="email-subject">{email.subject}</p>
+                  {email.preview ? <p className="text-sm text-muted-foreground">Inbox preview: {email.preview}</p> : null}
+                  <div className="flex gap-2 text-sm" role="group" aria-label="Preview width">
+                    {(["desktop", "phone"] as const).map((w) => (
+                      <Link
+                        key={w}
+                        href={`/dev/emails?id=${selected.id}${w === "phone" ? "&width=phone" : ""}`}
+                        aria-current={(w === "phone") === phone ? "true" : undefined}
+                        className={cn(
+                          "rounded-full border px-3 py-1",
+                          (w === "phone") === phone ? "border-brand bg-brand-soft text-brand" : "border-border text-muted-foreground",
+                        )}
+                      >
+                        {w === "phone" ? "Phone width" : "Desktop width"}
+                      </Link>
+                    ))}
+                  </div>
                   <iframe
                     title={`Email: ${email.subject}`}
                     srcDoc={email.html}
                     sandbox="allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
-                    className="h-[560px] w-full rounded-lg border border-border bg-white"
+                    className={cn("h-[900px] rounded-lg border border-border bg-white", phone ? "w-[375px] max-w-full self-center" : "w-full")}
                   />
                   <details>
                     <summary className="cursor-pointer text-sm text-muted-foreground">Plain-text version</summary>

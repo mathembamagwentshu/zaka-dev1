@@ -15,8 +15,8 @@ async function main() {
   if (!c.RESEND_API_KEY) throw new Error("RESEND_API_KEY is not set.");
   if (!to) throw new Error("Pass the recipient: npm run email:check -- you@your-domain.example");
   if (!isAllowlisted(to, c.emailAllowlist)) throw new Error("Recipient is not on EMAIL_ALLOWLIST — refusing to send.");
-  const email = layoutForCheck();
-  const { data, error } = await new Resend(c.RESEND_API_KEY).emails.send({ from: c.EMAIL_FROM, to: [to], ...email });
+  const { subject, text, html } = layoutForCheck();
+  const { data, error } = await new Resend(c.RESEND_API_KEY).emails.send({ from: c.EMAIL_FROM, to: [to], subject, text, html });
   if (error || !data) throw new Error(`Resend refused the message: ${error?.name ?? ""} ${error?.message ?? ""}`);
   console.log(JSON.stringify({ sent: true, resendMessageId: data.id, from: c.EMAIL_FROM }, null, 2));
 }

@@ -73,3 +73,14 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+a:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::selection {
+  background: var(--brand-soft);
+}

@@ -91,25 +91,27 @@ export function AmountSplit({ totalMinor, currency, labels, hints, scope, initia
                 disabled={disabled}
                 onChange={(e) => update(i, e.target.value)}
                 aria-invalid={touched && error ? true : undefined}
-                aria-describedby={`${hintId} ${error ? errId : ""}`.trim()}
+                aria-describedby={touched && error ? errId : hintId}
                 className={cn("pl-7 pr-14 tabular text-lg font-medium", calculated && "bg-brand-soft/40")}
               />
               <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground" aria-hidden>
                 {currency}
               </span>
             </div>
-            <p id={hintId} className="text-xs text-muted-foreground">
-              {calculated
-                ? unavailable
-                  ? "Waiting for a valid amount in the other field"
-                  : `Calculated from the ${scope === "order" ? "order total" : "share"} — edit to change`
-                : hints?.[i] ?? " "}
-            </p>
+            {/* One message line per field: an error replaces the hint, so the form never jumps. */}
             {touched && error ? (
-              <p id={errId} className="text-sm font-medium text-danger">
+              <p id={errId} className="min-h-5 text-sm font-medium text-danger">
                 {allocationErrorMessage(error, currency, totalMinor, scope)}
               </p>
-            ) : null}
+            ) : (
+              <p id={hintId} className="min-h-5 text-xs leading-5 text-muted-foreground">
+                {calculated
+                  ? unavailable
+                    ? "Waiting for a valid amount in the other field"
+                    : `Calculated from the ${scope === "order" ? "order total" : "share"} — edit to change`
+                  : hints?.[i] ?? ""}
+              </p>
+            )}
           </div>
         );
       })}

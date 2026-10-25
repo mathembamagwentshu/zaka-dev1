@@ -30,7 +30,7 @@ test.describe("Multi-Card Split", () => {
 
     await page.getByRole("link", { name: /Back to Demo Test Store/ }).click();
     await expect(page.getByRole("heading", { name: "Order paid" })).toBeVisible();
-    await expect(page.getByText("Fulfilment is disabled in the sandbox")).toBeVisible();
+    await expect(page.getByText(/the order is paid, but nothing will be shipped/)).toBeVisible();
   });
 
   test("AC-05: decline after an earlier reservation releases it; retry succeeds", async ({ page, request }) => {
@@ -40,9 +40,12 @@ test.describe("Multi-Card Split", () => {
     await page.getByRole("button", { name: "Continue to card details" }).click();
     await reserveCard(page, "4242424242424242");
     await reserveCard(page, "4000000000000002");
-    await expect(page.getByText("Card 2 wasn't accepted.")).toBeVisible();
+    await expect(page.getByText("Card 2 wasn't accepted")).toBeVisible();
     await expect(page.getByText(/released the \$35\.00 reserved on card 1 \(•••• 4242\)/)).toBeVisible();
-    // Amounts unlocked: choose a new split and pay.
+    // Amounts unlocked and the previous split is kept, so a retry needn't start from empty fields.
+    await expect(page.getByLabel("Card 1 amount")).toHaveValue("35.00");
+    await expect(page.getByLabel("Card 2 amount")).toHaveValue("65.00");
+    await expect(page.getByRole("button", { name: "Continue to card details" })).toBeEnabled();
     await page.getByLabel("Card 2 amount").fill("50");
     await expect(page.getByLabel("Card 1 amount")).toHaveValue("50.00");
     await page.getByRole("button", { name: "Continue to card details" }).click();

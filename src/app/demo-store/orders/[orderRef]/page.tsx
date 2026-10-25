@@ -1,4 +1,5 @@
-import { CheckCircle2, CircleAlert, PackageX } from "lucide-react";
+import { ArrowLeft, CheckCircle2, CircleAlert, Clock, PackageX } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
@@ -7,12 +8,29 @@ import { config } from "@/server/config";
 import { isAppError } from "@/server/errors";
 import type { CurrencyCode } from "@/lib/currency";
 import { formatMoney } from "@/lib/money";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { StoreFrame } from "../../store-frame";
+
+export const metadata: Metadata = { title: "Order status" };
+
+/** What the store shows for Zaka's checkout status — plain language, never internal codes. */
+const CHECKOUT_STATUS: Record<string, string> = {
+  OPEN: "Waiting for the shopper to choose how to pay",
+  AWAITING_PAYMENT: "Payment in progress",
+  CAPTURING: "Payment being completed",
+  COMPLETED: "Paid in full",
+  CAPTURE_EXCEPTION: "Payment problem — Zaka operators are resolving it",
+  REVERSED: "Payment reversed and refunded",
+  CANCELLED: "Cancelled — nothing charged",
+  EXPIRED: "Expired — nothing charged",
+  SUPERSEDED: "Replaced by a newer checkout",
+};
 
 /** Store-side order page (fixture). Reads Zaka's merchant status to decide fulfilment. */
 export default async function OrderPage({ params }: PageProps<"/demo-store/orders/[orderRef]">) {
   await connection();
-  if (!config().DEMO_STORE_ENABLED) notFound();
+  const c = config();
+  if (!c.DEMO_STORE_ENABLED) notFound();
   const { orderRef } = await params;
   let status;
   try {
@@ -21,38 +39,54 @@ export default async function OrderPage({ params }: PageProps<"/demo-store/order
     if (isAppError(e)) notFound();
     throw e;
   }
+  const session = status.latestSession;
+  const problem = session?.status === "CAPTURE_EXCEPTION";
+  const pending = !status.paid && (session?.status === "OPEN" || session?.status === "AWAITING_PAYMENT" || session?.status === "CAPTURING");
   return (
-    <div className="mx-auto w-full max-w-xl px-4 py-10">
-      <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-warning">Sandbox test-store fixture</p>
-      <Card>
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex items-center gap-3">
-            {status.paid ? <CheckCircle2 className="size-7 text-success" aria-hidden /> : <CircleAlert className="size-7 text-warning" aria-hidden />}
-            <h1 className="text-xl font-semibold">{status.paid ? "Order paid" : "Order not paid"}</h1>
-          </div>
-          <dl className="grid grid-cols-2 gap-y-2 text-sm">
-            <dt className="text-muted-foreground">Order</dt>
-            <dd className="font-mono">{status.orderRef}</dd>
-            <dt className="text-muted-foreground">Total</dt>
-            <dd className="tabular">
-              {formatMoney(status.amountMinor, status.currency as CurrencyCode)} {status.currency}
-            </dd>
-            <dt className="text-muted-foreground">Zaka checkout</dt>
-            <dd>{status.latestSession ? `${status.latestSession.ref} · ${status.latestSession.status.toLowerCase().replace(/_/g, " ")}` : "—"}</dd>
-          </dl>
-          <div className="flex gap-2 rounded-lg bg-surface-muted p-3 text-sm text-muted-foreground">
-            <PackageX aria-hidden className="size-4 shrink-0" />
-            <p>
-              {status.paid
-                ? "Fulfilment is disabled in the sandbox: nothing will be shipped."
-                : "Fulfilment is blocked until Zaka confirms the full payment."}
-            </p>
-          </div>
-          <Link href="/demo-store" className="text-sm font-medium text-brand hover:underline">
-            Back to the store
+    <StoreFrame merchantName={c.MERCHANT_DISPLAY_NAME}>
+      <div className="rounded-2xl border border-border bg-white p-5 sm:p-6">
+        <div className="flex items-center gap-3">
+          {status.paid ? (
+            <CheckCircle2 className="size-7 text-success" aria-hidden />
+          ) : pending ? (
+            <Clock className="size-7 text-info" aria-hidden />
+          ) : (
+            <CircleAlert className="size-7 text-warning" aria-hidden />
+          )}
+          <h1 className="text-xl font-semibold tracking-tight">
+            {status.paid ? "Order paid" : problem ? "Payment needs attention" : pending ? "Waiting for payment" : "Order not paid"}
+          </h1>
+        </div>
+        <dl className="mt-5 grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 text-sm">
+          <dt className="text-muted-foreground">Order</dt>
+          <dd className="font-mono">{status.orderRef}</dd>
+          <dt className="text-muted-foreground">Total</dt>
+          <dd className="tabular font-medium">
+            {formatMoney(status.amountMinor, status.currency as CurrencyCode)} {status.currency}
+          </dd>
+          <dt className="text-muted-foreground">Zaka payment</dt>
+          <dd>{session ? CHECKOUT_STATUS[session.status] ?? "Unknown" : "Not started"}</dd>
+          {session ? (
+            <>
+              <dt className="text-muted-foreground">Reference</dt>
+              <dd className="font-mono">{session.ref}</dd>
+            </>
+          ) : null}
+        </dl>
+        <div className="mt-5 flex gap-2 rounded-xl bg-surface-muted p-3 text-sm text-muted-foreground">
+          <PackageX aria-hidden className="mt-0.5 size-4 shrink-0" />
+          <p>
+            {status.paid
+              ? "This is a demonstration store: the order is paid, but nothing will be shipped."
+              : "The store waits until Zaka confirms the full payment before it would ship anything."}
+          </p>
+        </div>
+        <Button asChild variant="secondary" className="mt-5">
+          <Link href="/demo-store">
+            <ArrowLeft /> Back to the store
           </Link>
-        </CardContent>
-      </Card>
-    </div>
+        </Button>
+      </div>
+    </StoreFrame>
   );
 }

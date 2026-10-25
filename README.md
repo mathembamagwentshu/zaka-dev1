@@ -77,6 +77,12 @@ checkout API exactly as a store backend would). Pick **Weekend bundle (USD 100.0
 Inspect any checkout with `npm run ops -- reconcile ZK-XXXXXXXX` (the reference is on the store's
 order page and in the preview).
 
+Other things worth showing:
+- **Start page:** <http://localhost:3000/> explains both methods.
+- **Not-found page:** <http://localhost:3000/anything>.
+- **Email preview:** <http://localhost:3000/dev/emails> shows each email at desktop and phone width,
+  with its inbox preview line and plain-text version.
+
 ## Verify locally
 
 ```bash
@@ -136,7 +142,7 @@ src/app/                       pages (/pay, /demo-store, /dev/emails) and route 
 src/components/pay/            the eight screen templates and their variants
 worker/                        background worker (pg-boss)
 prisma/                        schema + migrations (with hand-written financial constraints)
-scripts/                       setup, preflight, ops, stripe/email checks, verify:external
+scripts/                       setup, preflight, ops, stripe/email checks, verify:external, generate-icons
 tests/                         unit, integration (Postgres), e2e (Playwright)
 .railway/railway.ts            Railway infrastructure-as-code (prepared, not yet applied)
 ```

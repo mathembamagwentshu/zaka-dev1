@@ -128,6 +128,7 @@ export async function buildSessionView(viewer: Viewer): Promise<SessionView> {
       releasedCards: me.latest.allocations
         .filter((a) => a.status === "RELEASED" && a.authorisedAt)
         .map((a) => ({ position: a.position, amountMinor: a.amountMinor, last4: a.cardLast4, released: Boolean(a.releasedAt) })),
+      cardAmountsMinor: [...me.latest.allocations].sort((a, b) => a.position - b.position).map((a) => a.amountMinor),
     };
   }
 

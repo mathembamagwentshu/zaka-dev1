@@ -5,12 +5,16 @@ const securityHeaders = [
   { key: "Referrer-Policy", value: "no-referrer" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
+  // A private sandbox: nothing here should be indexed (payer pages are bearer-link only).
+  { key: "X-Robots-Tag", value: "noindex, nofollow" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(self \"https://js.stripe.com\")" },
 ];
 
 const nextConfig: NextConfig = {
   // Lets the E2E production build live beside the dev server (`.next-e2e`).
   distDir: process.env.NEXT_DIST_DIR || ".next",
+  // Keep demos clean; compile and runtime errors are still shown in development.
+  devIndicators: false,
   turbopack: {
     rules: {
       "*.css": {
