@@ -1,16 +1,190 @@
-SESSION_CREATED | merchant
-MODE_SELECTED | payer:initiator
-FAULT_PLAN_SET | operator:tour
-ATTEMPT_STARTED | payer:initiator
-INTENT_CREATED | system
-CARD_AUTHORISED | payer:initiator
-INTENT_CREATED | system
-CARD_AUTHORISED | payer:initiator
-ATTEMPT_AUTHORISED | payer:initiator
-CAPTURE_GATE_PASSED | payer:initiator
-CARD_CAPTURED | worker
-FAULT_INJECTED_CANCEL_BEFORE_CAPTURE | fault-injection
-PARTIAL_CAPTURE_EXCEPTION | worker
-OPERATOR_REFUND | operator:tour
-SESSION_REVERSED | operator:tour
-HOLD_RELEASED | system
+[
+  {
+    "at": "2026-10-25T09:22:44.057Z",
+    "type": "SESSION_CREATED",
+    "actor": "merchant",
+    "data": {
+      "currency": "USD",
+      "orderRef": "DEMO-1B612F2E",
+      "accountId": "acct_simulated_merchant",
+      "expiresAt": "2026-10-25T10:22:44.053Z",
+      "amountMinor": 10000,
+      "cartVersion": "bundle",
+      "providerKind": "simulated"
+    }
+  },
+  {
+    "at": "2026-10-25T09:22:44.163Z",
+    "type": "MODE_SELECTED",
+    "actor": "payer:initiator",
+    "data": {
+      "mode": "STANDALONE"
+    }
+  },
+  {
+    "at": "2026-10-25T09:22:45.264Z",
+    "type": "FAULT_PLAN_SET",
+    "actor": "operator:tour",
+    "data": {
+      "cancelBeforeCapture": 2
+    }
+  },
+  {
+    "at": "2026-10-25T09:22:45.587Z",
+    "type": "ATTEMPT_STARTED",
+    "actor": "payer:initiator",
+    "data": {
+      "currency": "USD",
+      "attemptId": "b120ca92-13ec-42d5-aaa1-1061e609c79b",
+      "cardsMinor": [
+        3500,
+        6500
+      ],
+      "attemptNumber": 1
+    }
+  },
+  {
+    "at": "2026-10-25T09:22:45.612Z",
+    "type": "INTENT_CREATED",
+    "actor": "system",
+    "data": {
+      "currency": "USD",
+      "accountId": "acct_simulated_merchant",
+      "amountMinor": 3500,
+      "providerIntentId": "pi_sim_2e0de9504b4a9324d57cb4a2"
+    }
+  },
+  {
+    "at": "2026-10-25T09:22:45.792Z",
+    "type": "CARD_AUTHORISED",
+    "actor": "payer:initiator",
+    "data": {
+      "currency": "USD",
+      "amountMinor": 3500,
+      "captureBefore": "2026-11-01T09:22:45.778Z",
+      "providerIntentId": "pi_sim_2e0de9504b4a9324d57cb4a2"
+    }
+  },
+  {
+    "at": "2026-10-25T09:22:45.812Z",
+    "type": "INTENT_CREATED",
+    "actor": "system",
+    "data": {
+      "currency": "USD",
+      "accountId": "acct_simulated_merchant",
+      "amountMinor": 6500,
+      "providerIntentId": "pi_sim_f3ebd593b8e765bb8a367129"
+    }
+  },
+  {
+    "at": "2026-10-25T09:22:45.924Z",
+    "type": "CARD_AUTHORISED",
+    "actor": "payer:initiator",
+    "data": {
+      "currency": "USD",
+      "amountMinor": 6500,
+      "captureBefore": "2026-11-01T09:22:45.913Z",
+      "providerIntentId": "pi_sim_f3ebd593b8e765bb8a367129"
+    }
+  },
+  {
+    "at": "2026-10-25T09:22:45.925Z",
+    "type": "ATTEMPT_AUTHORISED",
+    "actor": "payer:initiator",
+    "data": {
+      "attemptId": "b120ca92-13ec-42d5-aaa1-1061e609c79b"
+    }
+  },
+  {
+    "at": "2026-10-25T09:22:45.927Z",
+    "type": "CAPTURE_GATE_PASSED",
+    "actor": "payer:initiator",
+    "data": {
+      "currency": "USD",
+      "totalMinor": 10000
+    }
+  },
+  {
+    "at": "2026-10-25T09:22:46.710Z",
+    "type": "CARD_CAPTURED",
+    "actor": "worker",
+    "data": {
+      "currency": "USD",
+      "amountMinor": 3500,
+      "providerIntentId": "pi_sim_2e0de9504b4a9324d57cb4a2"
+    }
+  },
+  {
+    "at": "2026-10-25T09:22:46.711Z",
+    "type": "FAULT_INJECTED_CANCEL_BEFORE_CAPTURE",
+    "actor": "fault-injection",
+    "data": {
+      "note": "Controlled sandbox fault: hold cancelled at the provider before capture",
+      "providerIntentId": "pi_sim_f3ebd593b8e765bb8a367129"
+    }
+  },
+  {
+    "at": "2026-10-25T09:22:46.722Z",
+    "type": "PARTIAL_CAPTURE_EXCEPTION",
+    "actor": "worker",
+    "data": {
+      "held": [],
+      "failed": {
+        "id": "1cce6005-6b8d-4415-972a-96427127bc00",
+        "pi": "pi_sim_f3ebd593b8e765bb8a367129",
+        "amountMinor": 6500
+      },
+      "captured": [
+        {
+          "id": "bdccd1c6-1c28-4d96-bff0-52ac57e59d23",
+          "pi": "pi_sim_2e0de9504b4a9324d57cb4a2",
+          "amountMinor": 3500
+        }
+      ],
+      "fulfilment": "BLOCKED",
+      "failureCode": "payment_intent_unexpected_state"
+    }
+  },
+  {
+    "at": "2026-10-25T09:22:49.047Z",
+    "type": "OPERATOR_REFUND",
+    "actor": "operator:tour",
+    "data": {
+      "reason": "visual tour reversal",
+      "status": "succeeded",
+      "currency": "USD",
+      "amountMinor": 3500,
+      "providerRefundId": "re_sim_4bf8714d202c3781cd1c"
+    }
+  },
+  {
+    "at": "2026-10-25T09:22:49.053Z",
+    "type": "OPERATOR_HOLDS_RELEASED",
+    "actor": "operator:tour",
+    "data": {
+      "reason": "visual tour reversal",
+      "allocations": [
+        "1cce6005-6b8d-4415-972a-96427127bc00"
+      ]
+    }
+  },
+  {
+    "at": "2026-10-25T09:22:49.066Z",
+    "type": "HOLD_RELEASED",
+    "actor": "system",
+    "data": {
+      "currency": "USD",
+      "amountMinor": 6500,
+      "providerIntentId": "pi_sim_f3ebd593b8e765bb8a367129"
+    }
+  },
+  {
+    "at": "2026-10-25T09:22:49.075Z",
+    "type": "SESSION_REVERSED",
+    "actor": "system",
+    "data": {
+      "note": "all refunds confirmed by the provider",
+      "reason": "visual tour reversal"
+    }
+  }
+]

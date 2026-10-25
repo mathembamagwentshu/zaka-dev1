@@ -3,64 +3,100 @@
 Nothing in this repository records that any agreement, sign-off, cohort review or successor
 handover has happened. Those items are listed below as open.
 
-## 1. Access needed to finish verification (BLOCKED)
+## 1. Configuration still to be supplied (BLOCKED until then)
 
-Configure these locally in `.env` (never paste values into chat or tickets):
+Every value, its source and whether it is server-only or browser-visible is listed in
+[CONFIGURATION.md](CONFIGURATION.md). In short:
 
-| Item | Variables | Used for |
+| Item | Variables | Unblocks |
 |---|---|---|
-| Stripe **test** platform account with Connect enabled | `STRIPE_SECRET_KEY` (`sk_test_…` or restricted `rk_test_…`), `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (`pk_test_…`) | Real authorisations/captures |
-| The one merchant **connected account** (test mode, `card_payments` active) | `STRIPE_CONNECTED_ACCOUNT_ID` (`acct_…`) | Direct charges route |
-| Connect webhook signing secret | `STRIPE_WEBHOOK_SECRET` (`whsec_…`) — from the dashboard endpoint or `stripe listen --forward-connect-to …` | Webhook verification |
-| Resend | `RESEND_API_KEY`, `EMAIL_FROM` (verified domain), `EMAIL_ALLOWLIST` | Invitations / notices |
-| Test store | platform, URL, checkout surface, who changes its code | Replace the `/demo-store` fixture |
-| Railway project under founder control | — (invite the developer with a scoped role) | Sandbox deployment |
+| Stripe **test** platform with Connect | `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Real authorisations, captures, refunds |
+| The merchant **connected account** (test mode, `card_payments` active) | `STRIPE_CONNECTED_ACCOUNT_ID` | Direct-charge route |
+| Connect webhook signing secret | `STRIPE_WEBHOOK_SECRET` | Webhook path |
+| Resend with a verified sending domain | `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_ALLOWLIST` (+ optional `OPS_ALERT_EMAIL`) | Real email |
+| Founder-owned Railway project | Railway variables (same names) | Deployment |
+| Store status receiver (optional) | `MERCHANT_STATUS_WEBHOOK_URL` | Push notifications to the store |
 
-Then: `PAYMENT_PROVIDER=stripe`, `npm run stripe:check`, `E2E_PROVIDER=stripe npm run test:e2e`,
-and re-mark the Blocked rows in `docs/ACCEPTANCE.md`.
+Then follow the **verification sequence** in section 2.
 
-Alternative for developer-only verification (needs explicit founder approval because it registers
-an account with Stripe): `stripe sandboxes create --email <address>` provisions a claimable test
-sandbox. It would not be the agreed merchant account.
+A developer-only Stripe sandbox could be created with `stripe sandboxes create --email <address>`.
+That registers an account with Stripe, so it needs explicit founder approval. It would not be the
+agreed merchant account.
 
-## 2. Owner decisions and sign-offs (not agreed)
+## 2. Verification sequence after the values are added
+
+1. `npm run preflight -- --external`: fix every FAIL it names.
+2. `stripe listen --forward-connect-to localhost:3100/api/webhooks/stripe` in a second terminal.
+   Use its `whsec_` as `STRIPE_WEBHOOK_SECRET` for this local run.
+3. `npm run verify:external -- --email <allowlisted address>`. It runs:
+   - the external preflight;
+   - `stripe:check`;
+   - one Resend message;
+   - the standalone and contributor browser journeys on Stripe test mode, including decline,
+     3-D Secure and cancellation.
+4. If a Stripe-specific selector in `tests/e2e/helpers.ts` (`reserveCard`, Stripe branch) doesn't
+   match the live Payment Element, fix the selector. It has never run against Stripe.
+5. Partial-capture drill on Stripe: set `FAULT_INJECTION_ENABLED=true`, then follow
+   [RUNBOOK §4](RUNBOOK.md), keeping the `reconcile` output with real `pi_` and `re_` IDs.
+6. Deploy ([RUNBOOK §6](RUNBOOK.md)). On the deployed URL, run one standalone and one four-card
+   contributor purchase, reconcile both, and restart the worker mid-session.
+7. Update `docs/ACCEPTANCE.md` and `docs/SCENARIOS.md` from **Blocked/Not run** to the observed
+   results, citing the run.
+
+## 3. Owner decisions and sign-offs (not agreed)
 
 - Contribution/IP instrument, developer legal name and capacity, effort cap, M1–M4 dates
   (SOW Schedule A/B).
 - **Session window:** 60 minutes from checkout creation is implemented as a configurable
-  assumption. Confirm, and confirm that it starts at checkout creation (not at invitation).
-- Hold policy on decline (implemented: release the failing payer's holds; keep the other payer's
-  holds until the deadline) and partial-capture policy (implemented: operator reverses or retries;
-  holds kept until the operator acts).
+  assumption. Confirm it, and confirm the window starts at checkout creation (not at invitation).
+- **Hold policy on decline:** implemented as "release the failing payer's holds; keep the other
+  payer's holds until the deadline".
+- **Partial-capture policy:**
+  - Implemented: an operator chooses continuation retry (only while every remaining card is still
+    held) or reversal.
+  - Holds are kept until the operator acts.
+  - A reversal is final only when Stripe confirms every refund.
+  - No automatic reversal: chosen as the conservative default because refunds move money.
 - Browser/device matrix (proposed in `docs/PLAN.md` §7) and physical devices for AC-12.
-- Test store integration contract (or formal approval of the demo-checkout fixture as a
-  substitute deliverable — SOW §2).
+- Test store: platform and integration contract. The open questions are in
+  [STORE-INTEGRATION.md](STORE-INTEGRATION.md). Alternatively, formally approve the demo-checkout
+  fixture as a substitute deliverable (SOW §2).
 - Repository and runtime ownership; post-handover operator and cleanup plan; review window;
   cohort participants and evidence location.
 
-## 3. Known limitations (honest)
+## 3a. Known limitations (honest)
 
-1. **Real Stripe path not executed.** The Stripe adapter, Payment Element form, Connect webhooks
-   and the Stripe branch of the E2E helper (iframe/3DS selectors) are written against current
-   Stripe docs and type-check, but have never run against a Stripe account.
-2. **Not deployed.** `.railway/railway.ts` is an unverified draft (Railway's previous config format is
-   deprecated after 2026-12-01).
-3. **Store integration** is a labelled fixture.
-4. **Emails** have only been rendered (OUTBOX) and sent through a fake transport in tests.
-5. Device coverage is Playwright **emulation** (Pixel 7, iPhone 14) plus desktop Chrome/WebKit —
-   not physical phones.
-6. The initiator can re-copy the contributor's link (required by C4); whoever holds that link can
-   pay the contributor's share. Links are bearer credentials — copy reflects this.
-7. A partial-capture exception is surfaced in the payer UI, audit trail and an error log line; there
-   is no automatic operator alert.
-8. No rate limiting on payer endpoints (tokens are 256-bit; brute force is not practical, but abuse
-   protection is not implemented).
-9. In simulated mode the dev server receives test card numbers (never stored). Simulated mode is
+1. **Real Stripe path not executed.**
+   - The adapter is checked against a local mock of the Stripe API: request shape, headers, API
+     version, error mapping and webhook signatures.
+   - It has never run against a Stripe account.
+   - Not exercised: the Payment Element, the 3-D Secure modal and the Stripe-branch selectors of
+     the browser helper.
+2. **Not deployed.** `.railway/railway.ts` follows the documented `railway/iac` API but was never
+   planned or applied. The dashboard steps in the runbook are equivalent.
+3. **Store integration** is a labelled fixture implementing the documented contract.
+4. **Emails** were only rendered: OUTBOX plus the local preview, and a fake transport in tests.
+   No Resend delivery has happened.
+5. **Device coverage** is Playwright emulation (Pixel 7, iPhone 14, iPad) plus desktop Chromium
+   and WebKit. That is WebKit, not installed Safari, and no physical phones. A real on-screen
+   keyboard was approximated with a half-height viewport.
+6. **Contributor link access:** the initiator can re-copy the contributor's link (required by C4).
+   Whoever holds that link can pay the contributor's share; links are bearer credentials.
+7. **Operator alerting** is one email (`OPS_ALERT_EMAIL`) plus an error log line. There is no
+   paging or dashboard.
+8. **Rate limits** are kept in memory per web instance (correct for the single sandbox instance).
+   Several instances would need a shared store.
+9. **Simulated mode** sends test card numbers to the dev server (never stored). Simulated mode is
    refused in production.
-10. `pg` prints a deprecation warning from the Prisma adapter under concurrent transactions;
-    harmless today, revisit on `pg@9`.
-11. `eslint@10` with `eslint-config-next@16.4` produces an npm peer-dependency warning; lint runs
-    cleanly.
+10. **Harmless warning:** `pg` prints a deprecation warning from the Prisma adapter under
+    concurrent transactions. Revisit on `pg@9`.
+11. **Harmless warning:** `eslint@10` with `eslint-config-next@16.4` produces an npm
+    peer-dependency warning; lint runs cleanly.
+12. **Clean-setup rehearsal** was done by the developer, in a fresh clone on the developer's own
+    machine.
+    - The databases already existed, so the "create database" branch of `npm run setup` was not
+      exercised.
+    - AC-14 needs another person to repeat it.
 
 ## 4. Dependencies and licences
 

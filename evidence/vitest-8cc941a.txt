@@ -1,0 +1,15 @@
+
+ RUN  v5.0.5 /Users/priyanshu-leadzam/Documents/Zaka-Pay
+
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+
+ Test Files  9 passed (9)
+      Tests  216 passed (216)
+   Start at  14:49:42
+   Duration  13.84s (tests 87%, import 12%, transform 1%)
+

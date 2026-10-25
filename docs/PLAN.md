@@ -114,5 +114,23 @@ are configured last. Audit of build `bb6da25`:
 | UI | C1–C8 done; tablet/zoom/overflow not asserted | Simulated-mode label in header, Stripe redirect clean-up, tablet project, overflow + zoom checks |
 | Docs | Plan/architecture/runbook/acceptance/handover | Scenario matrix, configuration guide, store contract; update the rest |
 
-Resume rule: if this pass is interrupted, the table above is the to-do list; `git log` shows what
-has landed.
+Status: all rows above are implemented and tested locally (commits `ea1b4ce`, `a94a4be`, `8cc941a`).
+Two defects were found and fixed by the new tests:
+- A capture that succeeded at the provider, but whose database write failed, would have sent the
+  payer back to pay again.
+- Long names overflowed phone layouts.
+
+What remains needs credentials or people: HANDOVER §2.
+
+Additional decisions in this pass:
+
+| # | Decision |
+|---|---|
+| A16 | Uncertain provider outcomes are reconciled from the provider object before any decision; a provider-confirmed capture is always recorded, never re-authorised. |
+| A17 | Operator continuation retry is all-or-nothing: allowed only if every remaining card is still a valid hold; otherwise reverse. No "retry everything" command. |
+| A18 | A reversal is final (REVERSED) only after the provider confirms every refund; failed refunds alert the operator and are re-issued with a new idempotency key. |
+| A19 | Merchant POST signatures are single-use within the 5-minute window (replay protection); status GETs may repeat. |
+| A20 | Abuse protection counts failed authentications per client address (30/min) rather than all requests, so testers behind one IP aren't throttled; each link has a separate request budget. |
+| A21 | Optional store status callback is best-effort (≤ 8 attempts, 4xx final) and never affects payment state. |
+| A22 | Invitations not yet sent when a checkout closes are suppressed. |
+| A23 | The publishable key reaches the browser at runtime through the session API, so changing Stripe keys needs no rebuild. |
